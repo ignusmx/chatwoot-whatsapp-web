@@ -32,9 +32,14 @@ RUN groupadd -r pptruser && useradd -r -g pptruser -G audio,video pptruser \
     && chown -R pptruser:pptruser /home/pptruser \
     && chown -R pptruser:pptruser /usr/local
 
-USER pptruser
+COPY package.json package-lock.json ./
+
+
+RUN npm --global config set user pptruser \
+    && npm cache clean --force
 
 RUN npm i puppeteer -g
+RUN npm install
 
 ENTRYPOINT ["/bin/sh", "-c" , "npm install && npm run start"]
 
