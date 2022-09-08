@@ -105,3 +105,8 @@ dist
 
 # whatsapp web auth folder
 .wwebjs_auth
+
+.config/
+.local/
+.pki/
+.pm2/
