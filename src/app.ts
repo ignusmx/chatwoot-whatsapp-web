@@ -1,11 +1,14 @@
+import fs from "fs"; 
+import dotenv from "dotenv";
 import express from "express";
-import qrcode from "qrcode-terminal";
+import axios from "axios";
+import qrcode from "qrcode";
+import humps from "humps";
 import { Client, LocalAuth } from "whatsapp-web.js";
 import { ChatwootAPI } from "./ChatwootAPI";
-import dotenv from "dotenv";
-import fs from "fs";
 import { ChatwootMessage } from "./types";
-import humps from "humps";
+import { Readable } from "stream";
+import FormData from "form-data";
 
 if (
     !process.env.CHATWOOT_API_URL ||
@@ -24,9 +27,15 @@ if (
 }
 
 const expressApp = express();
+const puppeteer = process.env.DOCKERIZED ? {
+    headless: true,
+    args: ["--no-sandbox"],
+    executablePath: "google-chrome-stable"
+} : {};
 
 const whatsappWebClient = new Client({
     authStrategy: new LocalAuth(),
+    puppeteer: puppeteer
 });
 
 const chatwootAPI: ChatwootAPI = new ChatwootAPI(
@@ -39,12 +48,51 @@ const chatwootAPI: ChatwootAPI = new ChatwootAPI(
 expressApp.use(
     express.urlencoded({
         extended: true,
-    })
+    }),
+    express.json()
 );
-expressApp.use(express.json());
 
 whatsappWebClient.on("qr", (qr) => {
-    qrcode.generate(qr, { small: true });
+    qrcode.toString(qr, { type: "terminal", small: true }, (err, buffer) => {
+        if (!err) {
+            console.log(buffer);
+        } else {
+            console.error(err);
+        }
+    });
+
+    if (process.env.SLACK_TOKEN) {
+        qrcode.toBuffer(qr, { scale: 6 }, (err, buffer) => {
+            console.log(buffer);
+
+            const form = new FormData();
+
+            form.append("token", process.env.SLACK_TOKEN ?? "");
+            form.append("channels", process.env.SLACK_CHANNEL_ID ?? "");
+            form.append("title", "QR Code");
+            form.append("initial_comment", "WahtsApp needs to connect, use this code to authorize your number:");
+            form.append("file", new Readable({
+                read() {
+                    this.push(buffer);
+                    this.push(null);
+                }
+            }), "qr.png");
+
+            if (!err) {
+                axios.postForm("https://slack.com/api/files.upload", form, {
+                    headers: form.getHeaders(),
+                })
+                    .then(response => {
+                        console.log(response.data);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                    });
+            } else {
+                console.error(err);
+            }
+        });
+    }
 });
 
 whatsappWebClient.on("ready", () => {
@@ -55,7 +103,7 @@ whatsappWebClient.on("message", (message) => {
     chatwootAPI.broadcastMessageToChatwoot(message);
 });
 
-whatsappWebClient.initialize();
+whatsappWebClient.initialize().catch(console.error);
 
 expressApp.get("/", async (req, res) => {
     res.status(200).json({
