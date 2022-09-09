@@ -29,7 +29,7 @@ export class ChatwootAPI {
         if (chatwootContact == null) {
             chatwootContact = await this.makeChatwootContact(
                 whatsappWebChatwootInboxId,
-                `${whatsappContact.name ?? ""}`,
+                `${whatsappContact.name ?? whatsappContact.pushname ?? "+"+whatsappContact.number}`,
                 `+${whatsappContact.number}`
             );
             sourceId = chatwootContact.contact_inbox.source_id;
