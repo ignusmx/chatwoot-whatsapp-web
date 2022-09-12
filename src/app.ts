@@ -140,7 +140,8 @@ expressApp.get("/", async (req, res) => {
 
 expressApp.post("/chatwootMessage", async (req, res) => {
     try {
-        console.log(req.body);
+        const chatwootContact = await chatwootAPI.getChatwootContactById(req.body.contact_inbox.contact_id);
+        console.log(chatwootContact);
         //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
         const chatwootMessage = req.body;
         const whatsappWebClientState = await whatsappWebClient.getState();
@@ -149,7 +150,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             && chatwootMessage.inbox.id == process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
             && chatwootMessage.message_type == "outgoing" 
             && !chatwootMessage.private) {
-            const to = `${chatwootMessage.meta.sender?.phoneNumber?.substring(1)}@c.us`;
+            const to = `${chatwootContact.phone_number.substring(1)}@c.us`;
             
             let formattedMessage = `${chatwootMessage.content}`;
             if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")

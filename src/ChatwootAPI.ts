@@ -86,6 +86,17 @@ export class ChatwootAPI {
         return null;
     }
 
+    async getChatwootContactById(id: string) {
+        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const contactSearchEndPoint = `/accounts/${chatwootAccountId}/contacts/${id}`;
+
+        const {
+            data: { payload },
+        } = await axios.get(chatwootAPIUrl + contactSearchEndPoint, { headers: headers });
+        
+        return payload;
+    }
+
     async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
