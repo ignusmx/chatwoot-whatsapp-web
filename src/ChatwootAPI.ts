@@ -116,12 +116,12 @@ export class ChatwootAPI {
         return data;
     }
 
-    async postChatwootMessage(conversationId: string | number, message: string, type: string, attachment:any, remotePrivateMessagePrefix:string = "REMOTE: ") {
+    async postChatwootMessage(conversationId: string | number, message: string, type: string, attachment:any, remotePrivateMessagePrefix = "REMOTE: ") {
         const { chatwootAccountId, chatwootAPIUrl } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
         
         const bodyFormData:FormData = new FormData();
-        let isPrivate:string = "false";
+        let isPrivate = "false";
 
         //if message to post on chatwoot is outgoing
         //it means it was created from other WA cliente (web or device)

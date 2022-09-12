@@ -148,8 +148,8 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             const to = `${chatwootMessage.meta?.sender?.phoneNumber?.substring(1)}@c.us`;
             
             chatwootMessage.messages?.every((message) => {
-                let formattedMessage:string = `${message.content}`;
-                if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == 'true')
+                let formattedMessage = `${message.content}`;
+                if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
                 {
                     formattedMessage = `${chatwootMessage.meta?.sender?.name}: ${message.content}`;
                 }
