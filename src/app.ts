@@ -146,8 +146,8 @@ expressApp.post("/chatwootMessage", async (req, res) => {
         const chatwootContact = await chatwootAPI.getChatwootContactById(chatwootMessage.conversation.contact_inbox.contact_id);
         const messages = await chatwootAPI.getChatwootConversationMessages(chatwootMessage.conversation.id);
 
-        let messageData = messages.find((message:any) => {
-            return message.id === chatwootMessage.id
+        const messageData = messages.find((message:any) => {
+            return message.id === chatwootMessage.id;
         });
         console.log(messageData);
         const whatsappWebClientState = await whatsappWebClient.getState();
