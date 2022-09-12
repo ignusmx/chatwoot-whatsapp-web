@@ -18,7 +18,7 @@ export class ChatwootAPI {
         this.headers = { api_access_token: this.chatwootApiKey };
     }
 
-    async broadcastMessageToChatwoot(message: Message, type: string, attachment : any) {
+    async broadcastMessageToChatwoot(message: Message, type: string, attachment : any, remotePrivateMessagePrefix:string | undefined) {
         const { whatsappWebChatwootInboxId } = this;
 
         let chatwootConversation:any = null;
@@ -70,7 +70,7 @@ export class ChatwootAPI {
             );
         }
 
-        await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment);
+        await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment, remotePrivateMessagePrefix);
     }
 
     async findChatwootContact(query: string) {
@@ -116,23 +116,26 @@ export class ChatwootAPI {
         return data;
     }
 
-    async postChatwootMessage(conversationId: string | number, message: string, type: string, attachment:any) {
+    async postChatwootMessage(conversationId: string | number, message: string, type: string, attachment:any, remotePrivateMessagePrefix:string = "REMOTE: ") {
         const { chatwootAccountId, chatwootAPIUrl } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
         
         const bodyFormData:FormData = new FormData();
-        
-        bodyFormData.append("content", message);
-        bodyFormData.append("message_type", type);
-        bodyFormData.append("private", "false");
+        let isPrivate:string = "false";
 
+        //if message to post on chatwoot is outgoing
+        //it means it was created from other WA cliente (web or device)
+        //therefore we mark it as private so we can filter it
+        //when receiving it from the webhook (in later steps) to avoid duplicated messages
         if(type == "outgoing")
         {
-            console.log("outgoing");
-            bodyFormData.append('custom_attributes["isWARemoteMessage"]',"true");
-            bodyFormData.append('additional_attributes["isWARemoteMessage"]',"true");
-            bodyFormData.append('content_attributes["isWARemoteMessage"]',"true");
+            isPrivate = "true";
+            message = remotePrivateMessagePrefix+message;
         }
+
+        bodyFormData.append("content", message);
+        bodyFormData.append("message_type", type);
+        bodyFormData.append("private", isPrivate);
         
         const headers:AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
         

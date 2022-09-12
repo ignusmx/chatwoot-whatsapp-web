@@ -9,6 +9,7 @@ import { ChatwootAPI } from "./ChatwootAPI";
 import { ChatwootMessage } from "./types";
 import { Readable } from "stream";
 import FormData from "form-data";
+import { info } from "console";
 
 if (
     !process.env.CHATWOOT_API_URL ||
@@ -105,7 +106,7 @@ whatsappWebClient.on("message", async (message) => {
         attachment = await message.downloadMedia();
     }
 
-    chatwootAPI.broadcastMessageToChatwoot(message, "incoming", attachment);
+    chatwootAPI.broadcastMessageToChatwoot(message, "incoming", attachment, process.env.REMOTE_PRIVATE_MESSAGE_PREFIX);
 });
 
 whatsappWebClient.on("message_create", async (message) => {
@@ -123,7 +124,7 @@ whatsappWebClient.on("message_create", async (message) => {
                 attachment = await message.downloadMedia();
             }
         
-            chatwootAPI.broadcastMessageToChatwoot(message, "outgoing", attachment);
+            chatwootAPI.broadcastMessageToChatwoot(message, "outgoing", attachment, process.env.REMOTE_PRIVATE_MESSAGE_PREFIX);
         }
     }
 });
@@ -142,12 +143,17 @@ expressApp.post("/chatwootMessage", async (req, res) => {
         console.log(req.body);
         const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
         const whatsappWebClientState = await whatsappWebClient.getState();
-
-        if (whatsappWebClientState === "CONNECTED") {
+        //post to whatsapp only if we are connected to the client and message is not private
+        if (whatsappWebClientState === "CONNECTED" && !req.body.private) {
             const to = `${chatwootMessage.meta?.sender?.phoneNumber?.substring(1)}@c.us`;
-
+            
             chatwootMessage.messages?.every((message) => {
-                whatsappWebClient.sendMessage(to, `${message.content}`);
+                let formattedMessage:string = `${message.content}`;
+                if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == 'true')
+                {
+                    formattedMessage = `${chatwootMessage.meta?.sender?.name}: ${message.content}`;
+                }
+                whatsappWebClient.sendMessage(to, formattedMessage);
             });
         }
 
