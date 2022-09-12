@@ -141,20 +141,22 @@ expressApp.get("/", async (req, res) => {
 expressApp.post("/chatwootMessage", async (req, res) => {
     try {
         console.log(req.body);
-        const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
+        //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
+        const chatwootMessage = req.body;
         const whatsappWebClientState = await whatsappWebClient.getState();
         //post to whatsapp only if we are connected to the client and message is not private
-        if (whatsappWebClientState === "CONNECTED" && !req.body.private) {
-            const to = `${chatwootMessage.meta?.sender?.phoneNumber?.substring(1)}@c.us`;
+        if (whatsappWebClientState === "CONNECTED" 
+            && chatwootMessage.conversation.inbox_id == process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
+            && chatwootMessage.type == "outgoing" 
+            && !chatwootMessage.private) {
+            const to = `${chatwootMessage.sender?.phoneNumber?.substring(1)}@c.us`;
             
-            chatwootMessage.messages?.every((message) => {
-                let formattedMessage = `${message.content}`;
-                if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
-                {
-                    formattedMessage = `${chatwootMessage.meta?.sender?.name}: ${message.content}`;
-                }
-                whatsappWebClient.sendMessage(to, formattedMessage);
-            });
+            let formattedMessage = `${chatwootMessage.content}`;
+            if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
+            {
+                formattedMessage = `${chatwootMessage.sender?.name}: ${chatwootMessage.content}`;
+            }
+            whatsappWebClient.sendMessage(to, formattedMessage);
         }
 
         res.status(200).json({ result: "message_sent_succesfully" });
