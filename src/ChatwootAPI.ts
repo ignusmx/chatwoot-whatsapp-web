@@ -93,7 +93,7 @@ export class ChatwootAPI {
         const {
             data: { payload },
         } = await axios.get(chatwootAPIUrl + contactSearchEndPoint, { headers: headers });
-        
+
         return payload;
     }
 
@@ -169,6 +169,16 @@ export class ChatwootAPI {
     async getChatwootContactConversations(contactId: string | number) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}/conversations`;
+
+        const {
+            data: { payload },
+        } = await axios.get(chatwootAPIUrl + messagesEndPoint, { headers: headers });
+        return payload;
+    }
+
+    async getChatwootConversationMessageById(conversationId: string | number, messageId:string | number) {
+        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages/${messageId}`;
 
         const {
             data: { payload },
