@@ -146,8 +146,8 @@ expressApp.post("/chatwootMessage", async (req, res) => {
         const whatsappWebClientState = await whatsappWebClient.getState();
         //post to whatsapp only if we are connected to the client and message is not private
         if (whatsappWebClientState === "CONNECTED" 
-            && chatwootMessage.conversation.inbox_id == process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
-            && chatwootMessage.type == "outgoing" 
+            && chatwootMessage.inbox.id == process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
+            && chatwootMessage.message_type == "outgoing" 
             && !chatwootMessage.private) {
             const to = `${chatwootMessage.sender?.phoneNumber?.substring(1)}@c.us`;
             
