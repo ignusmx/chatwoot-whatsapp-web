@@ -176,9 +176,9 @@ export class ChatwootAPI {
         return payload;
     }
 
-    async getChatwootConversationMessageById(conversationId: string | number, messageId:string | number) {
+    async getChatwootConversationMessages(conversationId: string) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
-        const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages/${messageId}`;
+        const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
 
         const {
             data: { payload },

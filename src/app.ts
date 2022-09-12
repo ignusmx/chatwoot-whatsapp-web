@@ -144,8 +144,8 @@ expressApp.post("/chatwootMessage", async (req, res) => {
         //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
         const chatwootMessage = req.body;
         const chatwootContact = await chatwootAPI.getChatwootContactById(chatwootMessage.conversation.contact_inbox.contact_id);
-        const messageData = await chatwootAPI.getChatwootConversationMessageById(chatwootMessage.conversation.id, chatwootMessage.id);
-        console.log(messageData);
+        const messages = await chatwootAPI.getChatwootConversationMessages(chatwootMessage.conversation.id);
+        console.log(messages);
         const whatsappWebClientState = await whatsappWebClient.getState();
         //post to whatsapp only if we are connected to the client and message is not private
         if (whatsappWebClientState === "CONNECTED" 
