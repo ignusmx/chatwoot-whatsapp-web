@@ -4,7 +4,7 @@ import express from "express";
 import axios from "axios";
 import qrcode from "qrcode";
 import humps from "humps";
-import { Client, LocalAuth } from "whatsapp-web.js";
+import { Client, LocalAuth, MessageMedia } from "whatsapp-web.js";
 import { ChatwootAPI } from "./ChatwootAPI";
 import { ChatwootMessage } from "./types";
 import { Readable } from "stream";
@@ -99,8 +99,33 @@ whatsappWebClient.on("ready", () => {
     console.log("Client is ready!");
 });
 
-whatsappWebClient.on("message", (message) => {
-    chatwootAPI.broadcastMessageToChatwoot(message);
+whatsappWebClient.on("message", async (message) => {
+    let attachment = null;
+    if(message.hasMedia) {
+        attachment = await message.downloadMedia();
+    }
+
+    chatwootAPI.broadcastMessageToChatwoot(message, "incoming", attachment);
+});
+
+whatsappWebClient.on("message_create", async (message) => {
+    if(message.fromMe)
+    {
+        
+        let attachment:MessageMedia | undefined;
+        const rawData:any = message.rawData;
+        //broadcast WA message to chatwoot only if it was created
+        //from a real device/wa web and not from chatwoot app
+        //to avoid endless loop
+        if(rawData.self == "in")
+        {
+            if(message.hasMedia) {
+                attachment = await message.downloadMedia();
+            }
+        
+            chatwootAPI.broadcastMessageToChatwoot(message, "outgoing", attachment);
+        }
+    }
 });
 
 whatsappWebClient.initialize().catch(console.error);

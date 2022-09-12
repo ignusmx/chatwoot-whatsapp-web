@@ -1,5 +1,7 @@
 import axios, { AxiosRequestHeaders } from "axios";
-import { Message } from "whatsapp-web.js";
+import { Message,Contact } from "whatsapp-web.js";
+import FormData from "form-data";
+import MimeTypes from "mime-types";
 
 export class ChatwootAPI {
     private headers: AxiosRequestHeaders | undefined;
@@ -16,21 +18,33 @@ export class ChatwootAPI {
         this.headers = { api_access_token: this.chatwootApiKey };
     }
 
-    async broadcastMessageToChatwoot(message: Message) {
+    async broadcastMessageToChatwoot(message: Message, type: string, attachment : any) {
         const { whatsappWebChatwootInboxId } = this;
 
-        let sourceId = null;
-        let chatwootConversation = null;
-        //get whatsapp contact from message
-        const whatsappContact = await message.getContact();
-        const query = whatsappContact.number;
-        let chatwootContact = await this.findChatwootContact(query);
+        let chatwootConversation:any = null;
+        let sourceId:string|number = "";
+        let contactNumber = "";
+        let contactName = "";
+
+        //get whatsapp contact from message if it is an incoming message
+        if(type == "incoming")
+        {
+            const whatsappContact:Contact = await message.getContact();
+            contactNumber = whatsappContact.number;
+            contactName = whatsappContact.name ?? whatsappContact.pushname ?? "+"+whatsappContact.number;
+        }
+        else if(type == "outgoing"){
+            contactNumber = message.to.split("@")[0];
+            contactName = contactNumber;
+        }
+        
+        let chatwootContact = await this.findChatwootContact(contactNumber);
 
         if (chatwootContact == null) {
             chatwootContact = await this.makeChatwootContact(
                 whatsappWebChatwootInboxId,
-                `${whatsappContact.name ?? whatsappContact.pushname ?? "+"+whatsappContact.number}`,
-                `+${whatsappContact.number}`
+                contactName,
+                `+${contactNumber}`
             );
             sourceId = chatwootContact.contact_inbox.source_id;
         } else {
@@ -56,7 +70,7 @@ export class ChatwootAPI {
             );
         }
 
-        await this.postChatwootMessage(message.body, chatwootConversation.id as string);
+        await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment);
     }
 
     async findChatwootContact(query: string) {
@@ -102,19 +116,31 @@ export class ChatwootAPI {
         return data;
     }
 
-    async postChatwootMessage(message: string, conversationId: string | number) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+    async postChatwootMessage(conversationId: string | number, message: string, type: string, attachment:any) {
+        const { chatwootAccountId, chatwootAPIUrl } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
-
-        const messagePayload = {
-            content: message,
-            message_type: "incoming",
-            private: false,
-        };
-
+        
+        const bodyFormData:FormData = new FormData();
+        
+        bodyFormData.append("content", message);
+        bodyFormData.append("message_type", type);
+        bodyFormData.append("private", "false");
+        
+        const headers:AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
+        
+        if(attachment != null)
+        {
+            const buffer = Buffer.from(attachment.data, "base64");
+            const extension = MimeTypes.extension(attachment.mimetype);
+            const attachmentFilename = attachment.filename ?? "attachment."+extension;
+            bodyFormData.append("attachments[]", buffer, attachmentFilename);
+        }
+        
         const { data } = <{ data: Record<string, unknown> }>(
-            await axios.post(chatwootAPIUrl + messagesEndPoint, messagePayload, { headers: headers })
+            await axios.postForm(chatwootAPIUrl + messagesEndPoint, bodyFormData, { headers: headers, maxContentLength: Infinity,
+                maxBodyLength: Infinity })
         );
+        
         return data;
     }
 
