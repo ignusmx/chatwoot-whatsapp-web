@@ -129,7 +129,9 @@ export class ChatwootAPI {
         if(type == "outgoing")
         {
             console.log("outgoing");
-            bodyFormData.append("custom_attributes[isWARemoteMessage]","true");
+            bodyFormData.append('custom_attributes["isWARemoteMessage"]',"true");
+            bodyFormData.append('additional_attributes["isWARemoteMessage"]',"true");
+            bodyFormData.append('content_attributes["isWARemoteMessage"]',"true");
         }
         
         const headers:AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
