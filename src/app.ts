@@ -149,7 +149,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             && chatwootMessage.inbox.id == process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
             && chatwootMessage.message_type == "outgoing" 
             && !chatwootMessage.private) {
-            const to = `${chatwootMessage.sender?.phoneNumber?.substring(1)}@c.us`;
+            const to = `${chatwootMessage.meta.sender?.phoneNumber?.substring(1)}@c.us`;
             
             let formattedMessage = `${chatwootMessage.content}`;
             if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
