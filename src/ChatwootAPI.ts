@@ -125,6 +125,11 @@ export class ChatwootAPI {
         bodyFormData.append("content", message);
         bodyFormData.append("message_type", type);
         bodyFormData.append("private", "false");
+
+        if(type == "outgoing")
+        {
+            bodyFormData.append("content_attributes[isWARemoteMessage]","true");
+        }
         
         const headers:AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
         

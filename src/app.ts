@@ -139,6 +139,7 @@ expressApp.get("/", async (req, res) => {
 
 expressApp.post("/chatwootMessage", async (req, res) => {
     try {
+        console.log(req.body);
         const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
         const whatsappWebClientState = await whatsappWebClient.getState();
 
