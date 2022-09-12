@@ -12,16 +12,19 @@
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest",
-        "sourceType": "module"
+        "sourceType": "module",
+        "project": "./tsconfig.json"
     },
     "plugins": [
-        "@typescript-eslint"
+        "@typescript-eslint",
+        "no-secrets"
     ],
     "ignorePatterns":[
         "dist",
         "node_modules"
     ],
     "rules": {
+        "brace-style": "error",
         "indent": [
             "error",
             4
@@ -30,6 +33,7 @@
             "error",
             "unix"
         ],
+        "keyword-spacing": "error",
         "quotes": [
             "error",
             "double"
@@ -38,11 +42,10 @@
             "error",
             "always"
         ],
-        "no-invalid-this": [
-            "error"
-        ],
-        "no-underscore-dangle": [
-            "error"
-        ]
+        "no-invalid-this": "error",
+        "no-secrets/no-secrets": "error",
+        "no-underscore-dangle": "error",
+        "no-var": "error",
+        "space-before-blocks": "error"
     }
 }

@@ -1,14 +1,14 @@
-import fs from "fs"; 
+import fs from "fs";
 import dotenv from "dotenv";
 import express from "express";
 import axios from "axios";
 import qrcode from "qrcode";
 import humps from "humps";
 import { Client, LocalAuth, MessageMedia } from "whatsapp-web.js";
-import { ChatwootAPI } from "./ChatwootAPI";
-import { ChatwootMessage } from "./types";
 import { Readable } from "stream";
 import FormData from "form-data";
+import { ChatwootAPI } from "./ChatwootAPI";
+import { ChatwootMessage } from "./types";
 
 if (
     !process.env.CHATWOOT_API_URL ||
@@ -27,15 +27,17 @@ if (
 }
 
 const expressApp = express();
-const puppeteer = process.env.DOCKERIZED ? {
-    headless: true,
-    args: ["--no-sandbox"],
-    executablePath: "google-chrome-stable"
-} : {};
+const puppeteer = process.env.DOCKERIZED
+    ? {
+        headless: true,
+        args: ["--no-sandbox"],
+        executablePath: "google-chrome-stable",
+    }
+    : {};
 
 const whatsappWebClient = new Client({
     authStrategy: new LocalAuth(),
-    puppeteer: puppeteer
+    puppeteer: puppeteer,
 });
 
 const chatwootAPI: ChatwootAPI = new ChatwootAPI(
@@ -71,21 +73,26 @@ whatsappWebClient.on("qr", (qr) => {
             form.append("channels", process.env.SLACK_CHANNEL_ID ?? "");
             form.append("title", "QR Code");
             form.append("initial_comment", "WahtsApp needs to connect, use this code to authorize your number:");
-            form.append("file", new Readable({
-                read() {
-                    this.push(buffer);
-                    this.push(null);
-                }
-            }), "qr.png");
+            form.append(
+                "file",
+                new Readable({
+                    read() {
+                        this.push(buffer);
+                        this.push(null);
+                    },
+                }),
+                "qr.png"
+            );
 
             if (!err) {
-                axios.postForm("https://slack.com/api/files.upload", form, {
-                    headers: form.getHeaders(),
-                })
-                    .then(response => {
+                axios
+                    .postForm("https://slack.com/api/files.upload", form, {
+                        headers: form.getHeaders(),
+                    })
+                    .then((response) => {
                         console.log(response.data);
                     })
-                    .catch(err => {
+                    .catch((err) => {
                         console.error(err);
                     });
             } else {
@@ -100,8 +107,8 @@ whatsappWebClient.on("ready", () => {
 });
 
 whatsappWebClient.on("message", async (message) => {
-    let attachment = null;
-    if(message.hasMedia) {
+    let attachment: MessageMedia | undefined;
+    if (message.hasMedia) {
         attachment = await message.downloadMedia();
     }
 
@@ -109,20 +116,18 @@ whatsappWebClient.on("message", async (message) => {
 });
 
 whatsappWebClient.on("message_create", async (message) => {
-    if(message.fromMe)
-    {
-        
-        let attachment:MessageMedia | undefined;
-        const rawData:any = message.rawData;
-        //broadcast WA message to chatwoot only if it was created
-        //from a real device/wa web and not from chatwoot app
-        //to avoid endless loop
-        if(rawData.self == "in")
-        {
-            if(message.hasMedia) {
+    if (message.fromMe) {
+        let attachment: MessageMedia | undefined;
+        const { self } = <{ self: string }>message.rawData ?? { self: ""};
+        // broadcast WA message to chatwoot only if it was created
+        // from a real device/wa web and not from chatwoot app
+        // to avoid endless loop
+        // eslint-disable-next-line
+        if (self === "in") {
+            if (message.hasMedia) {
                 attachment = await message.downloadMedia();
             }
-        
+
             chatwootAPI.broadcastMessageToChatwoot(message, "outgoing", attachment);
         }
     }
@@ -157,7 +162,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
     }
 });
 
-//init api server
+// init api server
 const server = expressApp.listen(process.env.PORT ?? "", () => {
     console.log(`API listening on ${process.env.PORT ?? ""}...`);
 });

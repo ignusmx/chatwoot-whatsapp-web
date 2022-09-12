@@ -1,164 +1,179 @@
 import axios, { AxiosRequestHeaders } from "axios";
-import { Message,Contact } from "whatsapp-web.js";
+import { Message, Contact, MessageMedia } from "whatsapp-web.js";
 import FormData from "form-data";
 import MimeTypes from "mime-types";
+import ChatwootClient, { extended_contact, contact_conversations, conversation } from "@figuro/chatwoot-sdk";
+
 
 export class ChatwootAPI {
     private headers: AxiosRequestHeaders | undefined;
     private chatwootAPIUrl: string;
     private chatwootApiKey: string;
-    private chatwootAccountId: string;
-    private whatsappWebChatwootInboxId: string;
+    private chatwootAccountId: number;
+    private whatsappWebChatwootInboxId: number;
+    private chatwoot: ChatwootClient;
 
     constructor(chatwootAPIUrl: string, chatwootApiKey: string, chatwootAccountId: string, whatsappWebChatwootInboxId: string) {
         this.chatwootAPIUrl = chatwootAPIUrl;
         this.chatwootApiKey = chatwootApiKey;
-        this.chatwootAccountId = chatwootAccountId;
-        this.whatsappWebChatwootInboxId = whatsappWebChatwootInboxId;
+        this.chatwootAccountId = parseInt(chatwootAccountId);
+        this.whatsappWebChatwootInboxId = parseInt(whatsappWebChatwootInboxId);
         this.headers = { api_access_token: this.chatwootApiKey };
+
+        this.chatwoot = new ChatwootClient({ config: {
+            basePath: chatwootAPIUrl,
+            with_credentials: true,
+            credentials: "include",
+            token: chatwootApiKey
+        }});
     }
 
-    async broadcastMessageToChatwoot(message: Message, type: string, attachment : any) {
+    async broadcastMessageToChatwoot(message: Message, type: "outgoing" | "incoming", attachment: MessageMedia | undefined ) {
         const { whatsappWebChatwootInboxId } = this;
 
-        let chatwootConversation:any = null;
-        let sourceId:string|number = "";
+        let chatwootConversation: conversation | contact_conversations | undefined = undefined;
+        let sourceId: string | undefined = "";
         let contactNumber = "";
         let contactName = "";
 
-        //get whatsapp contact from message if it is an incoming message
-        if(type == "incoming")
-        {
-            const whatsappContact:Contact = await message.getContact();
+        // get whatsapp contact from message if it is an incoming message
+        if (type == "incoming") {
+            const whatsappContact: Contact = await message.getContact();
             contactNumber = whatsappContact.number;
-            contactName = whatsappContact.name ?? whatsappContact.pushname ?? "+"+whatsappContact.number;
-        }
-        else if(type == "outgoing"){
+            contactName = whatsappContact.name ?? whatsappContact.pushname ?? "+" + whatsappContact.number;
+        } else if (type == "outgoing") {
             contactNumber = message.to.split("@")[0];
             contactName = contactNumber;
         }
-        
+
         let chatwootContact = await this.findChatwootContact(contactNumber);
 
         if (chatwootContact == null) {
-            chatwootContact = await this.makeChatwootContact(
-                whatsappWebChatwootInboxId,
-                contactName,
-                `+${contactNumber}`
-            );
-            sourceId = chatwootContact.contact_inbox.source_id;
+            chatwootContact = await this.makeChatwootContact(whatsappWebChatwootInboxId, contactName, `+${contactNumber}`);
+            sourceId = chatwootContact?.contact_inboxes?.pop()?.source_id;
         } else {
-            chatwootContact.contact_inboxes.forEach((inbox: { inbox: { id: string | number }; source_id: string | number }) => {
-                if (inbox.inbox.id == whatsappWebChatwootInboxId) {
+            chatwootContact.contact_inboxes?.forEach((inbox) => {
+                if (inbox.inbox?.id == whatsappWebChatwootInboxId) {
                     sourceId = inbox.source_id;
                 }
             });
-            const chatwootConversations = await this.getChatwootContactConversations(chatwootContact.id);
+            const chatwootConversations = await this.getChatwootContactConversations(chatwootContact.id ?? -1);
 
-            chatwootConversations.forEach(async (conversation: { inbox_id: string | number }) => {
+            chatwootConversations.forEach(async (conversation) => {
                 if (conversation.inbox_id == whatsappWebChatwootInboxId) {
                     chatwootConversation = conversation;
                 }
             });
         }
 
-        if (chatwootConversation == null) {
-            chatwootConversation = await this.makeChatwootConversation(
-                sourceId,
-                whatsappWebChatwootInboxId,
-                chatwootContact.id
-            );
-        }
-
-        await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment);
+        chatwootConversation = chatwootConversation ?? await this.makeChatwootConversation(
+            sourceId,
+            whatsappWebChatwootInboxId.toString(),
+            chatwootContact.id?.toString()
+        );
+        await this.postChatwootMessage(chatwootConversation?.id??-1, message.body, type, attachment);
     }
 
-    async findChatwootContact(query: string) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
-        const contactSearchEndPoint = `/accounts/${chatwootAccountId}/contacts/search?q=${query}`;
-
-        const {
-            data: { payload },
-        } = await axios.get(chatwootAPIUrl + contactSearchEndPoint, { headers: headers });
-        if (payload.length > 0) {
-            return payload[0];
-        }
-        return null;
+    async findChatwootContact(query: string): Promise<extended_contact> {
+        const { chatwootAccountId, chatwoot } = this;
+        
+        return new Promise<extended_contact>((resolve, reject) => {
+            chatwoot.contacts.contactSearch({ 
+                accountId: chatwootAccountId,
+                q: query
+            }).then(result => {
+                const { payload } = result;
+            
+                payload && payload.length
+                    ? resolve(payload[0])
+                    : reject();
+            });
+        });
     }
 
-    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
-        const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
+    async makeChatwootContact(inboxId: number, name: string, phoneNumber: string): Promise<extended_contact> {
+        const { chatwootAccountId, chatwoot } = this;
 
-        const contactPayload = {
-            inbox_id: inboxId,
-            name: name,
-            phone_number: phoneNumber,
-        };
-
-        const {
-            data: { payload },
-        } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + contactsEndPoint, contactPayload, { headers: headers });
-        return payload;
+        return new Promise<extended_contact>(resolve => {
+            chatwoot.contacts.createContact({
+                accountId: chatwootAccountId,
+                data: {
+                    inbox_id: inboxId,
+                    name: name,
+                    phone_number: phoneNumber,
+                }
+            }).then(contactPayload => {
+                resolve(contactPayload);
+            });
+        });
     }
 
-    async makeChatwootConversation(sourceId: string | number, inboxId: string, contactId: string | number) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
-        const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations`;
+    async makeChatwootConversation(sourceId: string | undefined, inboxId: string | undefined, contactId: string | undefined): Promise<conversation> {
+        const { chatwootAccountId, chatwoot } = this;
 
-        const conversationPayload = {
-            source_id: sourceId,
-            inbox_id: inboxId,
-            contact_id: contactId,
-        };
-
-        const { data } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + conversationsEndPoint, conversationPayload, { headers: headers });
-        return data;
+        return new Promise<conversation>(resolve => {
+            chatwoot.conversations.createConversation({
+                accountId: chatwootAccountId,
+                data: {
+                    source_id: sourceId,
+                    inbox_id: inboxId,
+                    contact_id: contactId,
+                }
+            }).then(result => {
+                resolve (result);
+            });
+        });
+        
     }
 
-    async postChatwootMessage(conversationId: string | number, message: string, type: string, attachment:any) {
+    async postChatwootMessage(conversationId: number, message: string, type: "outgoing" | "incoming" | undefined, attachment: any) {
         const { chatwootAccountId, chatwootAPIUrl } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
-        
-        const bodyFormData:FormData = new FormData();
-        
+        const bodyFormData: FormData = new FormData();
+
         bodyFormData.append("content", message);
         bodyFormData.append("message_type", type);
         bodyFormData.append("private", "false");
 
-        if(type == "outgoing")
-        {
+        if (type == "outgoing") {
             console.log("outgoing");
-            bodyFormData.append('custom_attributes["isWARemoteMessage"]',"true");
-            bodyFormData.append('additional_attributes["isWARemoteMessage"]',"true");
-            bodyFormData.append('content_attributes["isWARemoteMessage"]',"true");
+            bodyFormData.append("custom_attributes[\"isWARemoteMessage\"]", "true");
+            bodyFormData.append("additional_attributes[\"isWARemoteMessage\"]", "true");
+            bodyFormData.append("content_attributes[\"isWARemoteMessage\"]", "true");
         }
-        
-        const headers:AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
-        
-        if(attachment != null)
-        {
+
+        const headers: AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
+
+        if (attachment != null) {
             const buffer = Buffer.from(attachment.data, "base64");
             const extension = MimeTypes.extension(attachment.mimetype);
-            const attachmentFilename = attachment.filename ?? "attachment."+extension;
+            const attachmentFilename = attachment.filename ?? "attachment." + extension;
             bodyFormData.append("attachments[]", buffer, attachmentFilename);
         }
-        
-        const { data } = <{ data: Record<string, unknown> }>(
-            await axios.postForm(chatwootAPIUrl + messagesEndPoint, bodyFormData, { headers: headers, maxContentLength: Infinity,
-                maxBodyLength: Infinity })
+
+        const { data } = <{ data: Record<string, unknown> }> await axios.postForm(
+            chatwootAPIUrl + messagesEndPoint,
+            bodyFormData,
+            {
+                headers,
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+            }
         );
-        
+
         return data;
     }
 
-    async getChatwootContactConversations(contactId: string | number) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
-        const messagesEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}/conversations`;
+    async getChatwootContactConversations(contactId: number): Promise<contact_conversations> {
+        const { chatwootAccountId, chatwoot } = this;
 
-        const {
-            data: { payload },
-        } = await axios.get(chatwootAPIUrl + messagesEndPoint, { headers: headers });
-        return payload;
+        return new Promise<contact_conversations>(resolve => {
+            chatwoot.contacts.contactConversations({
+                accountId: chatwootAccountId,
+                id: contactId
+            }).then(result => {
+                resolve(result);
+            });
+        });
     }
 }

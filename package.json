@@ -9,7 +9,7 @@
         "stop": "pm2 stop all",
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write src/**/* --loglevel warn",
-        "lint": "npx eslint . --ext .ts --fix",
+        "lint": "npm exec -- eslint ./src --ext .ts --fix",
         "prepare": "husky install"
     },
     "author": "masterkitano <tprado@ignus.mx> (https://ignus.mx)",
@@ -18,11 +18,13 @@
     ],
     "license": "Apache-2.0",
     "dependencies": {
+        "@figuro/chatwoot-sdk": "^1.1.4",
         "axios": "^0.27.2",
         "dotenv": "^16.0.2",
         "express": "^4.18.1",
         "humps": "^2.0.1",
         "is-docker": "^3.0.0",
+        "mime-types": "^2.1.35",
         "pm2": "^5.2.0",
         "qrcode": "^1.5.1",
         "whatsapp-web.js": "^1.17.1"
@@ -37,12 +39,11 @@
         "@typescript-eslint/eslint-plugin": "^5.36.2",
         "@typescript-eslint/parser": "^5.36.2",
         "eslint": "^8.23.0",
+        "eslint-plugin-no-secrets": "^0.8.9",
         "husky": "^8.0.1",
-        "mime-types": "^2.1.35",
         "nodemon": "^2.0.19",
         "prettier": "^2.7.1",
         "ts-node": "^10.9.1",
-        "tslint": "^6.1.3",
         "typescript": "^4.8.2"
     }
 }
