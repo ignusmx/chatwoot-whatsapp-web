@@ -40,13 +40,14 @@ export class ChatwootAPI {
         if(messageChat.isGroup)
         {   
             const participantLabels:Array<string> = [];
-            (messageChat as GroupChat).participants.forEach(async (participant)=>{
+            for (const participant of (messageChat as GroupChat).participants) {
                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                 const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
                 const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
                 const participantLabel = `${participantName} - +${participantContact.number}`;
                 participantLabels.push(participantLabel);
-            });
+            }
+
             console.log(participantLabels);
         }
         else{
