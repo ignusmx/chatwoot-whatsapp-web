@@ -37,15 +37,16 @@ export class ChatwootAPI {
 
         //if chat is group chat, whe use the name@groupId as the query to search for the contact
         //otherwhise we search by phone number
-        if(!messageChat.isGroup)
+        if(messageChat.isGroup)
         {   
-            contactNumber = `+${messageChat.id.user}`;
             (messageChat as GroupChat).participants.forEach(async (participant)=>{
                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                 console.log(await whatsappWebClient.getContactById(participantIdentifier));
             });
         }
-        
+        else{
+            contactNumber = `+${messageChat.id.user}`;
+        }
         let chatwootContact = await this.findChatwootContact(contactIdentifier);
 
         if (chatwootContact == null) {
