@@ -25,36 +25,29 @@ export class ChatwootAPI {
         let sourceId:string|number = "";
         let contactNumber = "";
         let contactName = "";
-        let contactQuery = "";
         const messageChat:Chat = await message.getChat();
+        const contactIdentifier = `+${messageChat.id.user}@${messageChat.id.server}`;
         
         //we use the chat name as the chatwoot contact name
         //when chat is private, the name of the chat represents the contact's name
         //when chat is group, the name of the chat represents the group name
-        
+        contactName = messageChat.name;
 
         //if chat is group chat, whe use the name@groupId as the query to search for the contact
         //otherwhise we search by phone number
-        if(messageChat.isGroup)
-        {
-            contactName = `${messageChat.name}@${messageChat.id.user}`;
-            contactQuery = contactName;
-            
-        }
-        else
-        {
+        if(!messageChat.isGroup)
+        {   
             contactNumber = `+${messageChat.id.user}`;
-            contactQuery = contactNumber; 
         }
         
-        let chatwootContact = await this.findChatwootContact(messageChat.id.user);
+        let chatwootContact = await this.findChatwootContact(contactIdentifier);
 
         if (chatwootContact == null) {
             chatwootContact = await this.makeChatwootContact(
                 whatsappWebChatwootInboxId,
                 contactName,
                 contactNumber,
-                messageChat.id.user
+                contactIdentifier
             );
             sourceId = chatwootContact.contact_inbox.source_id;
         } else {
