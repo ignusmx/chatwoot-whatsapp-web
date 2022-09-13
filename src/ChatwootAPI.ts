@@ -43,12 +43,23 @@ export class ChatwootAPI {
         let chatwootContact = await this.findChatwootContact(contactIdentifier);
 
         if (chatwootContact == null) {
-            chatwootContact = await this.makeChatwootContact(
-                whatsappWebChatwootInboxId,
-                contactName,
-                contactNumber,
-                contactIdentifier
-            );
+            chatwootContact = await this.findChatwootContact(contactNumber);
+            if(chatwootContact == null)
+            {
+                chatwootContact = await this.makeChatwootContact(
+                    whatsappWebChatwootInboxId,
+                    contactName,
+                    contactNumber,
+                    contactIdentifier
+                );
+            }
+            else
+            {
+                //small improvement to update identifier on contacts who don't have WA identifier
+                const updatedData = {identifier : contactIdentifier};
+                await this.updateChatwootContact(chatwootContact.id, updatedData);
+            }
+            
             sourceId = chatwootContact.contact_inbox.source_id;
         } else {
             chatwootContact.contact_inboxes.forEach((inbox: { inbox: { id: string | number }; source_id: string | number }) => {
@@ -114,6 +125,16 @@ export class ChatwootAPI {
         const {
             data: { payload },
         } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + contactsEndPoint, contactPayload, { headers: headers });
+        return payload;
+    }
+
+    async updateChatwootContact(contactId: string | number, updatedData : any) {
+        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}`;
+
+        const {
+            data: { payload },
+        } = <{ data: Record<string, unknown> }> await axios.put(chatwootAPIUrl + contactsEndPoint, updatedData, { headers: headers });
         return payload;
     }
 
