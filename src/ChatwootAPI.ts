@@ -47,13 +47,14 @@ export class ChatwootAPI {
             contactQuery = contactNumber; 
         }
         
-        let chatwootContact = await this.findChatwootContact(contactQuery);
+        let chatwootContact = await this.findChatwootContact(messageChat.id.user);
 
         if (chatwootContact == null) {
             chatwootContact = await this.makeChatwootContact(
                 whatsappWebChatwootInboxId,
                 contactName,
-                contactNumber
+                contactNumber,
+                messageChat.id.user
             );
             sourceId = chatwootContact.contact_inbox.source_id;
         } else {
@@ -106,7 +107,7 @@ export class ChatwootAPI {
         return payload;
     }
 
-    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string) {
+    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier:string | undefined) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
 
@@ -114,6 +115,7 @@ export class ChatwootAPI {
             inbox_id: inboxId,
             name: name,
             phone_number: phoneNumber,
+            identifier : identifier
         };
 
         const {
