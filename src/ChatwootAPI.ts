@@ -78,6 +78,12 @@ export class ChatwootAPI {
                 whatsappWebChatwootInboxId,
                 chatwootContact.id
             );
+
+            //we set the group members if conversation is a group chat
+            if(messageChat.isGroup)
+            {
+                this.updateChatwootConversationGroupParticipants(messageChat as GroupChat);
+            }
         }
         
         await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment, remotePrivateMessagePrefix);
@@ -146,6 +152,25 @@ export class ChatwootAPI {
 
         const { data } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + conversationsEndPoint, conversationPayload, { headers: headers });
         return data;
+    }
+
+    async updateChatwootConversationGroupParticipants(whatsappGroupChat:GroupChat) {
+        const {whatsappWebClient} = this;
+        const contactIdentifier = `${whatsappGroupChat.id.user}@${whatsappGroupChat.id.server}`;
+
+        const participantLabels:Array<string> = [];
+        for (const participant of whatsappGroupChat.participants) {
+            const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
+            const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
+            const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
+            const participantLabel = `[${participantName} - +${participantContact.number}]`;
+            participantLabels.push(participantLabel);
+        }
+        const conversationCustomAttributes = {custom_attributes:{group_participants:participantLabels.join(",")}};
+        
+        const chatwootContact = await this.findChatwootContact(contactIdentifier);
+        const chatwootConversation = await this.getChatwootContactConversationByInboxId(chatwootContact.id, this.whatsappWebChatwootInboxId);
+        this.updateChatwootConversationCustomAttributes(chatwootConversation.id,conversationCustomAttributes);
     }
 
     async updateChatwootConversationCustomAttributes(conversationId: string | number, customAttributes:any) {
