@@ -208,7 +208,7 @@ export class ChatwootAPI {
     async getChatwootContactConversationByInboxId(contactId: string | number, inboxId : string | number) {
         const chatwootConversations = await this.getChatwootContactConversations(contactId);
         const chatwootConversation = chatwootConversations.find((conversation:any) => {
-            return conversation.inbox_id === inboxId;
+            return conversation.inbox_id == inboxId;
         });
 
         return chatwootConversation;
