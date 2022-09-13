@@ -187,7 +187,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                         if((contact.name != null && contact.name.includes(mentionIdentifier)) 
                         || contact.pushname.includes(mentionIdentifier)
                         || contact.number.includes(mentionIdentifier))
-                        whatsappMentions.push(contact);
+                            whatsappMentions.push(contact);
                     }
                 }
                 options.mentions = whatsappMentions;
