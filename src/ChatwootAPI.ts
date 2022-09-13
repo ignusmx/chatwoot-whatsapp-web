@@ -26,18 +26,20 @@ export class ChatwootAPI {
         let contactNumber = "";
         let contactName = "";
         let contactQuery = "";
-        let messageChat:Chat = await message.getChat();
+        const messageChat:Chat = await message.getChat();
         
         //we use the chat name as the chatwoot contact name
         //when chat is private, the name of the chat represents the contact's name
         //when chat is group, the name of the chat represents the group name
-        contactName = messageChat.name;
+        
 
         //if chat is group chat, whe use the name@groupId as the query to search for the contact
         //otherwhise we search by phone number
         if(messageChat.isGroup)
         {
-            contactQuery = `${messageChat.name}@${messageChat.id.user}`;
+            contactName = `${messageChat.name}@${messageChat.id.user}`;
+            contactQuery = contactName;
+            
         }
         else
         {
