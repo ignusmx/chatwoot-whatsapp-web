@@ -4,7 +4,7 @@ import express from "express";
 import axios from "axios";
 import qrcode from "qrcode";
 import humps from "humps";
-import { Client, LocalAuth, MessageMedia } from "whatsapp-web.js";
+import { Client, Contact, GroupChat, GroupNotification, LocalAuth, MessageMedia } from "whatsapp-web.js";
 import { ChatwootAPI } from "./ChatwootAPI";
 import { ChatwootMessage } from "./types";
 import { Readable } from "stream";
@@ -129,6 +129,45 @@ whatsappWebClient.on("message_create", async (message) => {
         }
     }
 });
+
+whatsappWebClient.on("group_join", async (groupNotification:GroupNotification) => {
+    const groupChat:GroupChat = (await groupNotification.getChat()) as GroupChat;
+    const contactIdentifier = `${groupChat.id.user}@${groupChat.id.server}`;
+
+    const participantLabels:Array<string> = [];
+    for (const participant of groupChat.participants) {
+        const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
+        const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
+        const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
+        const participantLabel = `[${participantName} - +${participantContact.number}]`;
+        participantLabels.push(participantLabel);
+    }
+    const conversationCustomAttributes = {custom_attributes:{group_participants:participantLabels.join(",")}};
+    
+    const chatwootContact = await chatwootAPI.findChatwootContact(contactIdentifier);
+    const chatwootConversation = await chatwootAPI.getChatwootContactConversationByInboxId(chatwootContact.id, process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID ?? "");
+    chatwootAPI.updateChatwootConversationCustomAttributes(chatwootConversation.id,conversationCustomAttributes);
+});
+
+whatsappWebClient.on("group_leave", async (groupNotification:GroupNotification) => {
+    const groupChat:GroupChat = (await groupNotification.getChat()) as GroupChat;
+    const contactIdentifier = `${groupChat.id.user}@${groupChat.id.server}`;
+
+    const participantLabels:Array<string> = [];
+    for (const participant of groupChat.participants) {
+        const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
+        const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
+        const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
+        const participantLabel = `[${participantName} - +${participantContact.number}]`;
+        participantLabels.push(participantLabel);
+    }
+    const conversationCustomAttributes = {custom_attributes:{group_participants:participantLabels.join(",")}};
+    
+    const chatwootContact = await chatwootAPI.findChatwootContact(contactIdentifier);
+    const chatwootConversation = await chatwootAPI.getChatwootContactConversationByInboxId(chatwootContact.id, process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID ?? "");
+    chatwootAPI.updateChatwootConversationCustomAttributes(chatwootConversation.id,conversationCustomAttributes);
+});
+
 
 whatsappWebClient.initialize().catch(console.error);
 

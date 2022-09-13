@@ -29,7 +29,6 @@ export class ChatwootAPI {
         let contactName = "";
         const messageChat:Chat = await message.getChat();
         const contactIdentifier = `${messageChat.id.user}@${messageChat.id.server}`;
-        const participantLabels:Array<string> = [];
         
         //we use the chat name as the chatwoot contact name
         //when chat is private, the name of the chat represents the contact's name
@@ -38,20 +37,11 @@ export class ChatwootAPI {
 
         //if chat is group chat, whe use the name@groupId as the query to search for the contact
         //otherwhise we search by phone number
-        if(messageChat.isGroup)
+        if(!messageChat.isGroup)
         {   
-            
-            for (const participant of (messageChat as GroupChat).participants) {
-                const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
-                const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
-                const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
-                const participantLabel = `${participantName} - +${participantContact.number}`;
-                participantLabels.push(participantLabel);
-            }
-        }
-        else{
             contactNumber = `+${messageChat.id.user}`;
         }
+        
         let chatwootContact = await this.findChatwootContact(contactIdentifier);
 
         if (chatwootContact == null) {
@@ -79,13 +69,7 @@ export class ChatwootAPI {
                     sourceId = inbox.source_id;
                 }
             });
-            const chatwootConversations = await this.getChatwootContactConversations(chatwootContact.id);
-
-            chatwootConversations.forEach(async (conversation: { inbox_id: string | number }) => {
-                if (conversation.inbox_id == whatsappWebChatwootInboxId) {
-                    chatwootConversation = conversation;
-                }
-            });
+            chatwootConversation = await this.getChatwootContactConversationByInboxId(chatwootContact.id, whatsappWebChatwootInboxId);
         }
 
         if (chatwootConversation == null) {
@@ -95,8 +79,7 @@ export class ChatwootAPI {
                 chatwootContact.id
             );
         }
-        const conversationCustomAttributes = {custom_attributes:{group_participants:participantLabels.join(",")}};
-        this.updateChatwootConversationCustomAttributes(chatwootConversation.id,conversationCustomAttributes);
+        
         await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment, remotePrivateMessagePrefix);
     }
 
@@ -220,6 +203,15 @@ export class ChatwootAPI {
             data: { payload },
         } = await axios.get(chatwootAPIUrl + messagesEndPoint, { headers: headers });
         return payload;
+    }
+
+    async getChatwootContactConversationByInboxId(contactId: string | number, inboxId : string | number) {
+        const chatwootConversations = await this.getChatwootContactConversations(contactId);
+        const chatwootConversation = chatwootConversations.find((conversation:any) => {
+            return conversation.inbox_id === inboxId;
+        });
+
+        return chatwootConversation;
     }
 
     async getChatwootConversationMessages(conversationId: string) {
