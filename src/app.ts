@@ -174,7 +174,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             {
                 whatsappWebClient.sendMessage(to, formattedMessage);
             }
-           /* let attachmentUrl = messageData.attachments[0].data_url;
+            /* let attachmentUrl = messageData.attachments[0].data_url;
             let buffer = await axios.get(attachmentUrl, {responseType: 'arraybuffer'});
             let base64Data = Buffer.from(buffer.data).toString('base64');
             console.log(base64Data);
