@@ -1,5 +1,5 @@
 import axios, { AxiosRequestHeaders } from "axios";
-import { Message, Chat, GroupChat, Client } from "whatsapp-web.js";
+import { Message, Chat, GroupChat, Client, Contact } from "whatsapp-web.js";
 import FormData from "form-data";
 import MimeTypes from "mime-types";
 
@@ -39,10 +39,15 @@ export class ChatwootAPI {
         //otherwhise we search by phone number
         if(messageChat.isGroup)
         {   
+            const participantLabels:Array<string> = [];
             (messageChat as GroupChat).participants.forEach(async (participant)=>{
                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
-                console.log(await whatsappWebClient.getContactById(participantIdentifier));
+                const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
+                const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
+                const participantLabel:string = `${participantName} - +${participantContact.number}`;
+                participantLabels.push(participantLabel);
             });
+            console.log(participantLabels);
         }
         else{
             contactNumber = `+${messageChat.id.user}`;
