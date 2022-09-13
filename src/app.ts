@@ -173,8 +173,8 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             let messageContent:MessageContent;
 
             const chatwootMentions:RegExpMatchArray | null = formattedMessage.match(/@\w+/g);
-            let whatsappMentions:Array<Contact> = [];
-            let options:any = {};
+            const whatsappMentions:Array<Contact> = [];
+            const options:any = {};
             if(chatwootMentions != null){
                 for (const mention of chatwootMentions) {
                     const contact:Contact = await whatsappWebClient.getContactById(mention.substring(1));
