@@ -4,7 +4,7 @@ import express from "express";
 import axios from "axios";
 import qrcode from "qrcode";
 import humps from "humps";
-import { Client, Contact, GroupChat, GroupNotification, LocalAuth, MessageContent, MessageMedia } from "whatsapp-web.js";
+import { Client, Contact, GroupChat, GroupNotification, GroupParticipant, LocalAuth, MessageContent, MessageMedia } from "whatsapp-web.js";
 import { ChatwootAPI } from "./ChatwootAPI";
 import { ChatwootMessage } from "./types";
 import { Readable } from "stream";
@@ -173,12 +173,22 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             let messageContent:MessageContent;
 
             const chatwootMentions:RegExpMatchArray | null = formattedMessage.match(/@\w+/g);
-            const whatsappMentions:Array<Contact> = [];
             const options:any = {};
+            
             if(chatwootMentions != null){
+                const whatsappMentions:Array<Contact> = [];
+                const groupChat:GroupChat = await whatsappWebClient.getChatById(to) as GroupChat;
+                const groupParticipants:Array<GroupParticipant> = groupChat.participants;
                 for (const mention of chatwootMentions) {
-                    const contact:Contact = await whatsappWebClient.getContactById(mention.substring(1));
-                    whatsappMentions.push(contact);
+                    for(const participant of groupParticipants){
+                        const mentionIdentifier = mention.substring(1).replace("+","");
+                        const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
+                        const contact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
+                        if((contact.name != null && contact.name.includes(mentionIdentifier)) 
+                        || contact.pushname.includes(mentionIdentifier)
+                        || contact.number.includes(mentionIdentifier))
+                        whatsappMentions.push(contact);
+                    }
                 }
                 options.mentions = whatsappMentions;
             }

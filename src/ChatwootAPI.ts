@@ -163,7 +163,7 @@ export class ChatwootAPI {
             const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
             const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
             const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
-            const participantLabel = `[${participantName} - ${participantIdentifier}]`;
+            const participantLabel = `[${participantName} - +${participantContact.number}]`;
             participantLabels.push(participantLabel);
         }
         const conversationCustomAttributes = {custom_attributes:{group_participants:participantLabels.join(",")}};
