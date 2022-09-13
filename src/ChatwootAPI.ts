@@ -1,5 +1,5 @@
 import axios, { AxiosRequestHeaders } from "axios";
-import { Message,Contact } from "whatsapp-web.js";
+import { Message,Contact, Chat, GroupChat } from "whatsapp-web.js";
 import FormData from "form-data";
 import MimeTypes from "mime-types";
 
@@ -25,26 +25,33 @@ export class ChatwootAPI {
         let sourceId:string|number = "";
         let contactNumber = "";
         let contactName = "";
+        let contactQuery = "";
+        let messageChat:Chat = await message.getChat();
+        
+        //we use the chat name as the chatwoot contact name
+        //when chat is private, the name of the chat represents the contact's name
+        //when chat is group, the name of the chat represents the group name
+        contactName = messageChat.name;
 
-        //get whatsapp contact from message if it is an incoming message
-        if(type == "incoming")
+        //if chat is group chat, whe use the name@groupId as the query to search for the contact
+        //otherwhise we search by phone number
+        if(messageChat.isGroup)
         {
-            const whatsappContact:Contact = await message.getContact();
-            contactNumber = whatsappContact.number;
-            contactName = whatsappContact.name ?? whatsappContact.pushname ?? "+"+whatsappContact.number;
+            contactQuery = `${messageChat.name}@${messageChat.id.user}`;
         }
-        else if(type == "outgoing"){
-            contactNumber = message.to.split("@")[0];
-            contactName = contactNumber;
+        else
+        {
+            contactNumber = `+${messageChat.id.user}`;
+            contactQuery = contactNumber; 
         }
         
-        let chatwootContact = await this.findChatwootContact(contactNumber);
+        let chatwootContact = await this.findChatwootContact(contactQuery);
 
         if (chatwootContact == null) {
             chatwootContact = await this.makeChatwootContact(
                 whatsappWebChatwootInboxId,
                 contactName,
-                `+${contactNumber}`
+                contactNumber
             );
             sourceId = chatwootContact.contact_inbox.source_id;
         } else {
