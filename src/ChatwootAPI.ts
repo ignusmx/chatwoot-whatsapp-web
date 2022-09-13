@@ -41,7 +41,7 @@ export class ChatwootAPI {
         {   
             contactNumber = `+${messageChat.id.user}`;
             (messageChat as GroupChat).participants.forEach(async (participant)=>{
-                const participantIdentifier = `${participant.id.user}@${participant.id.server}`
+                const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                 console.log(await whatsappWebClient.getContactById(participantIdentifier));
             });
         }
