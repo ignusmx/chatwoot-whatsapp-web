@@ -29,6 +29,7 @@ export class ChatwootAPI {
         let contactName = "";
         const messageChat:Chat = await message.getChat();
         const contactIdentifier = `${messageChat.id.user}@${messageChat.id.server}`;
+        const participantLabels:Array<string> = [];
         
         //we use the chat name as the chatwoot contact name
         //when chat is private, the name of the chat represents the contact's name
@@ -39,7 +40,7 @@ export class ChatwootAPI {
         //otherwhise we search by phone number
         if(messageChat.isGroup)
         {   
-            const participantLabels:Array<string> = [];
+            
             for (const participant of (messageChat as GroupChat).participants) {
                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                 const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
@@ -47,8 +48,6 @@ export class ChatwootAPI {
                 const participantLabel = `${participantName} - +${participantContact.number}`;
                 participantLabels.push(participantLabel);
             }
-
-            console.log(participantLabels);
         }
         else{
             contactNumber = `+${messageChat.id.user}`;
@@ -96,7 +95,8 @@ export class ChatwootAPI {
                 chatwootContact.id
             );
         }
-
+        const conversationCustomAttributes = {custom_attributes:{group_participants:participantLabels.join(",")}};
+        this.updateChatwootConversationCustomAttributes(chatwootConversation.id,conversationCustomAttributes);
         await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment, remotePrivateMessagePrefix);
     }
 
@@ -162,6 +162,14 @@ export class ChatwootAPI {
         };
 
         const { data } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + conversationsEndPoint, conversationPayload, { headers: headers });
+        return data;
+    }
+
+    async updateChatwootConversationCustomAttributes(conversationId: string | number, customAttributes:any) {
+        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/custom_attributes`;
+
+        const { data } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + conversationsEndPoint, customAttributes, { headers: headers });
         return data;
     }
 
