@@ -152,33 +152,28 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             && !chatwootMessage.private) {
             const chatwootContact = await chatwootAPI.getChatwootContactById(chatwootMessage.conversation.contact_inbox.contact_id);
             const messages = await chatwootAPI.getChatwootConversationMessages(chatwootMessage.conversation.id);
-
             const messageData = messages.find((message:any) => {
                 return message.id === chatwootMessage.id;
             });
             
             const to = `${chatwootContact.phone_number.substring(1)}@c.us`;
-            
             let formattedMessage = `${chatwootMessage.content}`;
+
             if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
             {
                 formattedMessage = `${chatwootMessage.sender?.name}: ${chatwootMessage.content}`;
             }
 
-            if(messageData.attachments.lengh > 0)
+            if(messageData.attachments != null && messageData.attachments.length > 0)
             {
                 const media = await MessageMedia.fromUrl(messageData.attachments[0].data_url);
-                whatsappWebClient.sendMessage(to, media, {caption:formattedMessage});
+                const options = formattedMessage == null ? undefined : {caption:formattedMessage};
+                whatsappWebClient.sendMessage(to, media, options);
             }
             else
             {
                 whatsappWebClient.sendMessage(to, formattedMessage);
             }
-            /* let attachmentUrl = messageData.attachments[0].data_url;
-            let buffer = await axios.get(attachmentUrl, {responseType: 'arraybuffer'});
-            let base64Data = Buffer.from(buffer.data).toString('base64');
-            console.log(base64Data);
-            whatsappWebClient.sendMessage(to, formattedMessage);*/
         }
 
         res.status(200).json({ result: "message_sent_succesfully" });
