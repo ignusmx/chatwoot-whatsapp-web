@@ -4,7 +4,7 @@ import express from "express";
 import axios from "axios";
 import qrcode from "qrcode";
 import humps from "humps";
-import { Client, Contact, GroupChat, GroupNotification, LocalAuth, MessageMedia } from "whatsapp-web.js";
+import { Client, Contact, GroupChat, GroupNotification, LocalAuth, MessageContent, MessageMedia } from "whatsapp-web.js";
 import { ChatwootAPI } from "./ChatwootAPI";
 import { ChatwootMessage } from "./types";
 import { Readable } from "stream";
@@ -170,6 +170,18 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             
             const to = `${chatwootContact.identifier}`;
             let formattedMessage:string = chatwootMessage.content;
+            let messageContent:MessageContent;
+
+            const chatwootMentions:RegExpMatchArray | null = formattedMessage.match(/@\w+/g);
+            let whatsappMentions:Array<Contact> = [];
+            let options:any = {};
+            if(chatwootMentions != null){
+                for (const mention of chatwootMentions) {
+                    const contact:Contact = await whatsappWebClient.getContactById(mention.substring(1));
+                    whatsappMentions.push(contact);
+                }
+                options.mentions = whatsappMentions;
+            }
 
             if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true" && formattedMessage != null)
             {
@@ -179,13 +191,18 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             if(messageData.attachments != null && messageData.attachments.length > 0)
             {
                 const media = await MessageMedia.fromUrl(messageData.attachments[0].data_url);
-                const options = formattedMessage == null ? undefined : {caption:formattedMessage};
-                whatsappWebClient.sendMessage(to, media, options);
+                if(formattedMessage != null)
+                {
+                    options.caption = formattedMessage;
+                }
+
+                messageContent = media;
             }
             else
             {
-                whatsappWebClient.sendMessage(to, formattedMessage);
+                messageContent = formattedMessage;
             }
+            whatsappWebClient.sendMessage(to, formattedMessage, options);
         }
 
         res.status(200).json({ result: "message_sent_succesfully" });
