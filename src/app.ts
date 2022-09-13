@@ -143,19 +143,20 @@ expressApp.post("/chatwootMessage", async (req, res) => {
         
         //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
         const chatwootMessage = req.body;
-        const chatwootContact = await chatwootAPI.getChatwootContactById(chatwootMessage.conversation.contact_inbox.contact_id);
-        const messages = await chatwootAPI.getChatwootConversationMessages(chatwootMessage.conversation.id);
 
-        const messageData = messages.find((message:any) => {
-            return message.id === chatwootMessage.id;
-        });
-        console.log(messageData);
         const whatsappWebClientState = await whatsappWebClient.getState();
         //post to whatsapp only if we are connected to the client and message is not private
         if (whatsappWebClientState === "CONNECTED" 
             && chatwootMessage.inbox.id == process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
             && chatwootMessage.message_type == "outgoing" 
             && !chatwootMessage.private) {
+            const chatwootContact = await chatwootAPI.getChatwootContactById(chatwootMessage.conversation.contact_inbox.contact_id);
+            const messages = await chatwootAPI.getChatwootConversationMessages(chatwootMessage.conversation.id);
+
+            const messageData = messages.find((message:any) => {
+                return message.id === chatwootMessage.id;
+            });
+            
             const to = `${chatwootContact.phone_number.substring(1)}@c.us`;
             
             let formattedMessage = `${chatwootMessage.content}`;
@@ -163,7 +164,21 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             {
                 formattedMessage = `${chatwootMessage.sender?.name}: ${chatwootMessage.content}`;
             }
-            whatsappWebClient.sendMessage(to, formattedMessage);
+
+            if(messageData.attachments.lengh > 0)
+            {
+                const media = await MessageMedia.fromUrl(messageData.attachments[0].data_url);
+                whatsappWebClient.sendMessage(to, media, {caption:formattedMessage});
+            }
+            else
+            {
+                whatsappWebClient.sendMessage(to, formattedMessage);
+            }
+           /* let attachmentUrl = messageData.attachments[0].data_url;
+            let buffer = await axios.get(attachmentUrl, {responseType: 'arraybuffer'});
+            let base64Data = Buffer.from(buffer.data).toString('base64');
+            console.log(base64Data);
+            whatsappWebClient.sendMessage(to, formattedMessage);*/
         }
 
         res.status(200).json({ result: "message_sent_succesfully" });
