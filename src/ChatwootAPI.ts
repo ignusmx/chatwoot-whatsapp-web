@@ -44,7 +44,7 @@ export class ChatwootAPI {
                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                 const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
                 const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
-                const participantLabel:string = `${participantName} - +${participantContact.number}`;
+                const participantLabel = `${participantName} - +${participantContact.number}`;
                 participantLabels.push(participantLabel);
             });
             console.log(participantLabels);
