@@ -43,7 +43,8 @@ const chatwootAPI: ChatwootAPI = new ChatwootAPI(
     process.env.CHATWOOT_API_URL ?? "",
     process.env.CHATWOOT_API_KEY ?? "",
     process.env.CHATWOOT_ACCOUNT_ID ?? "",
-    process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID ?? ""
+    process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID ?? "",
+    whatsappWebClient
 );
 
 expressApp.use(

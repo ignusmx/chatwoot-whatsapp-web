@@ -1,5 +1,5 @@
 import axios, { AxiosRequestHeaders } from "axios";
-import { Message,Contact, Chat, GroupChat } from "whatsapp-web.js";
+import { Message, Chat, GroupChat, Client } from "whatsapp-web.js";
 import FormData from "form-data";
 import MimeTypes from "mime-types";
 
@@ -9,17 +9,19 @@ export class ChatwootAPI {
     private chatwootApiKey: string;
     private chatwootAccountId: string;
     private whatsappWebChatwootInboxId: string;
+    private whatsappWebClient : Client;
 
-    constructor(chatwootAPIUrl: string, chatwootApiKey: string, chatwootAccountId: string, whatsappWebChatwootInboxId: string) {
+    constructor(chatwootAPIUrl: string, chatwootApiKey: string, chatwootAccountId: string, whatsappWebChatwootInboxId: string, whatsappWebClient: Client) {
         this.chatwootAPIUrl = chatwootAPIUrl;
         this.chatwootApiKey = chatwootApiKey;
         this.chatwootAccountId = chatwootAccountId;
         this.whatsappWebChatwootInboxId = whatsappWebChatwootInboxId;
+        this.whatsappWebClient = whatsappWebClient;
         this.headers = { api_access_token: this.chatwootApiKey };
     }
 
     async broadcastMessageToChatwoot(message: Message, type: string, attachment : any, remotePrivateMessagePrefix:string | undefined) {
-        const { whatsappWebChatwootInboxId } = this;
+        const { whatsappWebChatwootInboxId,whatsappWebClient } = this;
 
         let chatwootConversation:any = null;
         let sourceId:string|number = "";
@@ -38,6 +40,10 @@ export class ChatwootAPI {
         if(!messageChat.isGroup)
         {   
             contactNumber = `+${messageChat.id.user}`;
+            (messageChat as GroupChat).participants.forEach(async (participant)=>{
+                const participantIdentifier = `${participant.id.user}@${participant.id.server}`
+                console.log(await whatsappWebClient.getContactById(participantIdentifier));
+            });
         }
         
         let chatwootContact = await this.findChatwootContact(contactIdentifier);
