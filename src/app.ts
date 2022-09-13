@@ -157,13 +157,14 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             });
             
             const to = `${chatwootContact.phone_number.substring(1)}@c.us`;
-            let formattedMessage = `${chatwootMessage.content}`;
+            
+            let formattedMessage = chatwootMessage.content;
 
-            if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
+            if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true" && formattedMessage != null)
             {
                 formattedMessage = `${chatwootMessage.sender?.name}: ${chatwootMessage.content}`;
             }
-
+            
             if(messageData.attachments != null && messageData.attachments.length > 0)
             {
                 const media = await MessageMedia.fromUrl(messageData.attachments[0].data_url);
