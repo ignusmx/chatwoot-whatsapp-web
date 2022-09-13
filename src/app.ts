@@ -156,7 +156,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                 return message.id === chatwootMessage.id;
             });
             
-            const to = `${chatwootContact.phone_number.substring(1)}@c.us`;
+            const to = `${chatwootContact.identifier}`;
             let formattedMessage:string = chatwootMessage.content;
 
             if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true" && formattedMessage != null)
