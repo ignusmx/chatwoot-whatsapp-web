@@ -178,13 +178,13 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             });
             
             const to = `${chatwootContact.identifier}`;
-            let formattedMessage:string = chatwootMessage.content;
-            let messageContent:MessageContent;
+            let formattedMessage:string | undefined = chatwootMessage.content;
+            let messageContent:MessageContent | undefined;
 
-            const chatwootMentions:RegExpMatchArray | null = formattedMessage.match(/@("[^@"']+"|'[^@"']+'|[^@\s"']+)/g);
+            const chatwootMentions:RegExpMatchArray | null = formattedMessage == null ? null : formattedMessage.match(/@("[^@"']+"|'[^@"']+'|[^@\s"']+)/g);
             const options:any = {};
             
-            if(chatwootMentions != null){
+            if(formattedMessage != null && chatwootMentions != null){
                 const whatsappMentions:Array<Contact> = [];
                 const groupChat:GroupChat = await whatsappWebClient.getChatById(to) as GroupChat;
                 const groupParticipants:Array<GroupParticipant> = groupChat.participants;
@@ -223,7 +223,11 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             {
                 messageContent = formattedMessage;
             }
-            whatsappWebClient.sendMessage(to, messageContent, options);
+
+            if(messageContent != null)
+            {
+                whatsappWebClient.sendMessage(to, messageContent, options);
+            }   
         }
 
         res.status(200).json({ result: "message_sent_succesfully" });
