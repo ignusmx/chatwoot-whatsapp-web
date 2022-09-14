@@ -116,7 +116,7 @@ whatsappWebClient.on("message", async (message) => {
         authorContact = await whatsappWebClient.getContactById(message.author);
         messagePrefix = `${authorContact.name ?? authorContact.pushname ?? authorContact.number}: `;
     }
-    
+
     chatwootAPI.broadcastMessageToChatwoot(message, "incoming", attachment, messagePrefix);
 });
 
@@ -223,7 +223,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             {
                 messageContent = formattedMessage;
             }
-            whatsappWebClient.sendMessage(to, formattedMessage, options);
+            whatsappWebClient.sendMessage(to, messageContent, options);
         }
 
         res.status(200).json({ result: "message_sent_succesfully" });
