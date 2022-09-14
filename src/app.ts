@@ -172,7 +172,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             let formattedMessage:string = chatwootMessage.content;
             let messageContent:MessageContent;
 
-            const chatwootMentions:RegExpMatchArray | null = formattedMessage.match(/@\w+/g);
+            const chatwootMentions:RegExpMatchArray | null = formattedMessage.match(/@[^@\s]+/g);
             const options:any = {};
             
             if(chatwootMentions != null){
@@ -181,10 +181,10 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                 const groupParticipants:Array<GroupParticipant> = groupChat.participants;
                 for (const mention of chatwootMentions) {
                     for(const participant of groupParticipants){
-                        const mentionIdentifier = mention.substring(1).replace("+","");
+                        const mentionIdentifier = mention.substring(1).replace("+","").toLowerCase();
                         const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                         const contact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
-                        if((contact.name != null && contact.name.includes(mentionIdentifier)) 
+                        if((contact.name != null && contact.name.toLowerCase().includes(mentionIdentifier)) 
                         || contact.pushname.includes(mentionIdentifier)
                         || contact.number.includes(mentionIdentifier))
                             whatsappMentions.push(contact);
