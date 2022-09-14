@@ -188,7 +188,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                         || contact.pushname.toLowerCase().includes(mentionIdentifier)
                         || contact.number.includes(mentionIdentifier)){
                             whatsappMentions.push(contact);
-                            formattedMessage.replace(mention, `@${participant.id.user}`);
+                            formattedMessage = formattedMessage.replace(mention, `@${participant.id.user}`);
                         }
                     }
                 }
