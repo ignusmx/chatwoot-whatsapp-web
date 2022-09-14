@@ -203,11 +203,9 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                 options.mentions = whatsappMentions;
             }
 
-            if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true" 
-            && (formattedMessage != null 
-                || (messageData.attachments != null && messageData.attachments.length > 0)))
+            if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
             {
-                formattedMessage = `${chatwootMessage.sender?.name}: ${formattedMessage}`;
+                formattedMessage = `${chatwootMessage.sender?.name}: ${formattedMessage??""}`;
             }
             
             if(messageData.attachments != null && messageData.attachments.length > 0)
