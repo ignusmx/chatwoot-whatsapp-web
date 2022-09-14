@@ -20,7 +20,7 @@ export class ChatwootAPI {
         this.headers = { api_access_token: this.chatwootApiKey };
     }
 
-    async broadcastMessageToChatwoot(message: Message, type: string, attachment : any, remotePrivateMessagePrefix:string | undefined) {
+    async broadcastMessageToChatwoot(message: Message, type: string, attachment : any, messagePrefix:string | undefined) {
         const { whatsappWebChatwootInboxId,whatsappWebClient } = this;
 
         let chatwootConversation:any = null;
@@ -85,8 +85,19 @@ export class ChatwootAPI {
                 this.updateChatwootConversationGroupParticipants(messageChat as GroupChat);
             }
         }
-        
-        await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, attachment, remotePrivateMessagePrefix);
+
+        //if message to post on chatwoot is outgoing
+        //it means it was created from other WA cliente (web or device)
+        //therefore we mark it as private so we can filter it
+        //when receiving it from the webhook (in later steps) to avoid duplicated messages
+        let isPrivate:boolean = false;
+        if(type == "outgoing")
+        {
+            isPrivate = true;
+            
+        }
+
+        await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, isPrivate, messagePrefix, attachment);
     }
 
     async findChatwootContact(query: string) {
@@ -181,26 +192,16 @@ export class ChatwootAPI {
         return data;
     }
 
-    async postChatwootMessage(conversationId: string | number, message: string, type: string, attachment:any, remotePrivateMessagePrefix = "REMOTE: ") {
+    async postChatwootMessage(conversationId: string | number, message: string, type: string, isPrivate:boolean = false, messagePrefix?:string, attachment?:any) {
         const { chatwootAccountId, chatwootAPIUrl } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
         
         const bodyFormData:FormData = new FormData();
-        let isPrivate = "false";
-
-        //if message to post on chatwoot is outgoing
-        //it means it was created from other WA cliente (web or device)
-        //therefore we mark it as private so we can filter it
-        //when receiving it from the webhook (in later steps) to avoid duplicated messages
-        if(type == "outgoing")
-        {
-            isPrivate = "true";
-            message = remotePrivateMessagePrefix+message;
-        }
+        message = messagePrefix+message;
 
         bodyFormData.append("content", message);
         bodyFormData.append("message_type", type);
-        bodyFormData.append("private", isPrivate);
+        bodyFormData.append("private", isPrivate.toString());
         
         const headers:AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
         

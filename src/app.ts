@@ -107,7 +107,13 @@ whatsappWebClient.on("message", async (message) => {
         attachment = await message.downloadMedia();
     }
 
-    chatwootAPI.broadcastMessageToChatwoot(message, "incoming", attachment, process.env.REMOTE_PRIVATE_MESSAGE_PREFIX);
+    let messagePrefix:string | undefined;
+
+    if((await message.getChat()).isGroup)
+    {
+        messagePrefix = `${message.author}: `;
+    }
+    chatwootAPI.broadcastMessageToChatwoot(message, "incoming", attachment, messagePrefix);
 });
 
 whatsappWebClient.on("message_create", async (message) => {
