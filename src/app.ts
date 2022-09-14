@@ -186,9 +186,10 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                         const contact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
                         if((contact.name != null && contact.name.toLowerCase().includes(mentionIdentifier)) 
                         || contact.pushname.toLowerCase().includes(mentionIdentifier)
-                        || contact.number.includes(mentionIdentifier))
+                        || contact.number.includes(mentionIdentifier)){
                             whatsappMentions.push(contact);
-                        formattedMessage.replace(mention, `@${participant.id.user}`);
+                            formattedMessage.replace(mention, `@${participant.id.user}`);
+                        }
                     }
                 }
                 options.mentions = whatsappMentions;
@@ -196,7 +197,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
 
             if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true" && formattedMessage != null)
             {
-                formattedMessage = `${chatwootMessage.sender?.name}: ${chatwootMessage.content}`;
+                formattedMessage = `${chatwootMessage.sender?.name}: ${formattedMessage}`;
             }
             
             if(messageData.attachments != null && messageData.attachments.length > 0)
