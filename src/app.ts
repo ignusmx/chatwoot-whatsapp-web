@@ -161,7 +161,6 @@ expressApp.get("/", async (req, res) => {
 
 expressApp.post("/chatwootMessage", async (req, res) => {
     try {
-        
         //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
         const chatwootMessage = req.body;
 
@@ -204,7 +203,9 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                 options.mentions = whatsappMentions;
             }
 
-            if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true" && formattedMessage != null)
+            if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true" 
+            && (formattedMessage != null 
+                || (messageData.attachments != null && messageData.attachments.length > 0)))
             {
                 formattedMessage = `${chatwootMessage.sender?.name}: ${formattedMessage}`;
             }
