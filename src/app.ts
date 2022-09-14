@@ -185,9 +185,10 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                         const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                         const contact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
                         if((contact.name != null && contact.name.toLowerCase().includes(mentionIdentifier)) 
-                        || contact.pushname.includes(mentionIdentifier)
+                        || contact.pushname.toLowerCase().includes(mentionIdentifier)
                         || contact.number.includes(mentionIdentifier))
                             whatsappMentions.push(contact);
+                            formattedMessage.replace(mention, `@${participant.id.user}`)
                     }
                 }
                 options.mentions = whatsappMentions;
