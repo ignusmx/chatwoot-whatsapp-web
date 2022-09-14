@@ -181,7 +181,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                 const groupParticipants:Array<GroupParticipant> = groupChat.participants;
                 for (const mention of chatwootMentions) {
                     for(const participant of groupParticipants){
-                        const mentionIdentifier = mention.substring(1).replace("+","").replace("\"","").replace("'","").toLowerCase();
+                        const mentionIdentifier = mention.substring(1).replaceAll("+","").replaceAll("\"","").replaceAll("'","").toLowerCase();
                         const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                         const contact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
                         if((contact.name != null && contact.name.toLowerCase().includes(mentionIdentifier)) 
