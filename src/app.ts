@@ -108,18 +108,21 @@ whatsappWebClient.on("message", async (message) => {
     }
 
     let messagePrefix:string | undefined;
-
-    if((await message.getChat()).isGroup)
+    let authorContact:Contact;
+    //if author != null it means the message was sent to a group chat
+    //so we need to prefix the author's name
+    if(message.author != null)
     {
-        messagePrefix = `${message.author}: `;
+        authorContact = await whatsappWebClient.getContactById(message.author);
+        messagePrefix = `${authorContact.name ?? authorContact.pushname ?? authorContact.number}: `;
     }
+    
     chatwootAPI.broadcastMessageToChatwoot(message, "incoming", attachment, messagePrefix);
 });
 
 whatsappWebClient.on("message_create", async (message) => {
     if(message.fromMe)
     {
-        
         let attachment:MessageMedia | undefined;
         const rawData:any = message.rawData;
         //broadcast WA message to chatwoot only if it was created

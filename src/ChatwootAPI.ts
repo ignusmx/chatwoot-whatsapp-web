@@ -90,7 +90,7 @@ export class ChatwootAPI {
         //it means it was created from other WA cliente (web or device)
         //therefore we mark it as private so we can filter it
         //when receiving it from the webhook (in later steps) to avoid duplicated messages
-        let isPrivate:boolean = false;
+        let isPrivate = false;
         if(type == "outgoing")
         {
             isPrivate = true;
@@ -192,7 +192,7 @@ export class ChatwootAPI {
         return data;
     }
 
-    async postChatwootMessage(conversationId: string | number, message: string, type: string, isPrivate:boolean = false, messagePrefix?:string, attachment?:any) {
+    async postChatwootMessage(conversationId: string | number, message: string, type: string, isPrivate = false, messagePrefix?:string, attachment?:any) {
         const { chatwootAccountId, chatwootAPIUrl } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
         
