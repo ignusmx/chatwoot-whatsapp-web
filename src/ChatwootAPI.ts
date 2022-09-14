@@ -197,7 +197,10 @@ export class ChatwootAPI {
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
         
         const bodyFormData:FormData = new FormData();
-        message = messagePrefix+message;
+        if(messagePrefix != null)
+        {
+            message = messagePrefix+message;
+        }
 
         bodyFormData.append("content", message);
         bodyFormData.append("message_type", type);
