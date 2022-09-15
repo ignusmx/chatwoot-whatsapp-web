@@ -9,14 +9,16 @@ export class ChatwootAPI {
     private chatwootApiKey: string;
     private chatwootAccountId: string;
     private whatsappWebChatwootInboxId: string;
+    private whatsappWebGroupParticipantsAttributeName: string;
     private whatsappWebClient : Client;
 
-    constructor(chatwootAPIUrl: string, chatwootApiKey: string, chatwootAccountId: string, whatsappWebChatwootInboxId: string, whatsappWebClient: Client) {
+    constructor(chatwootAPIUrl: string, chatwootApiKey: string, chatwootAccountId: string, whatsappWebChatwootInboxId: string, whatsappWebGroupParticipantsAttributeName: string, whatsappWebClient: Client) {
         this.chatwootAPIUrl = chatwootAPIUrl;
         this.chatwootApiKey = chatwootApiKey;
         this.chatwootAccountId = chatwootAccountId;
         this.whatsappWebChatwootInboxId = whatsappWebChatwootInboxId;
         this.whatsappWebClient = whatsappWebClient;
+        this.whatsappWebGroupParticipantsAttributeName = whatsappWebGroupParticipantsAttributeName;
         this.headers = { api_access_token: this.chatwootApiKey };
     }
 
@@ -177,7 +179,7 @@ export class ChatwootAPI {
             const participantLabel = `[${participantName} - +${participantContact.number}]`;
             participantLabels.push(participantLabel);
         }
-        const conversationCustomAttributes = {custom_attributes:{group_participants:participantLabels.join(",")}};
+        const conversationCustomAttributes = {custom_attributes:{[this.whatsappWebGroupParticipantsAttributeName]:participantLabels.join(",")}};
         
         const chatwootContact = await this.findChatwootContact(contactIdentifier);
         const chatwootConversation = await this.getChatwootContactConversationByInboxId(chatwootContact.id, this.whatsappWebChatwootInboxId);

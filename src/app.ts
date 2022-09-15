@@ -15,7 +15,8 @@ if (
     !process.env.CHATWOOT_API_URL ||
     !process.env.CHATWOOT_API_KEY ||
     !process.env.CHATWOOT_ACCOUNT_ID ||
-    !process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
+    !process.env.CHATWOOT_WW_INBOX_ID ||
+    !process.env.CHATWOOT_WW_GROUP_PARTICIPANTS_ATTRIBUTE_NAME
 ) {
     // assert that required envs are set or try to fallback to file
     try {
@@ -43,7 +44,8 @@ const chatwootAPI: ChatwootAPI = new ChatwootAPI(
     process.env.CHATWOOT_API_URL ?? "",
     process.env.CHATWOOT_API_KEY ?? "",
     process.env.CHATWOOT_ACCOUNT_ID ?? "",
-    process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID ?? "",
+    process.env.CHATWOOT_WW_INBOX_ID ?? "",
+    process.env.CHATWOOT_WW_GROUP_PARTICIPANTS_ATTRIBUTE_NAME ?? "",
     whatsappWebClient
 );
 
@@ -167,7 +169,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
         const whatsappWebClientState = await whatsappWebClient.getState();
         //post to whatsapp only if we are connected to the client and message is not private
         if (whatsappWebClientState === "CONNECTED" 
-            && chatwootMessage.inbox.id == process.env.WHATSAPP_WEB_CHATWOOT_INBOX_ID
+            && chatwootMessage.inbox.id == process.env.CHATWOOT_WW_INBOX_ID
             && chatwootMessage.message_type == "outgoing" 
             && !chatwootMessage.private) {
             const chatwootContact = await chatwootAPI.getChatwootContactById(chatwootMessage.conversation.contact_inbox.contact_id);
