@@ -199,6 +199,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                         || contact.number.includes(mentionIdentifier)){
                             whatsappMentions.push(contact);
                             formattedMessage = formattedMessage.replace(mention, `@${participant.id.user}`);
+                            break; //we continue with next mention since we found our contact and there's no need to keep searching
                         }
                     }
                 }
