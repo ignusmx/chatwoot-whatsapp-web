@@ -222,7 +222,7 @@ expressApp.post("/chatwootMessage", async (req, res) => {
                     senderName = sender.available_name ?? sender.name;
                 }
 
-                formattedMessage = `${chatwootMessage.sender?.name}: ${formattedMessage??""}`;
+                formattedMessage = `${senderName}: ${formattedMessage??""}`;
             }
             
             if(messageData.attachments != null && messageData.attachments.length > 0)
