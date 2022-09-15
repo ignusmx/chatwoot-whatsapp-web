@@ -216,9 +216,9 @@ expressApp.post("/chatwootMessage", async (req, res) => {
             if(process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true")
             {
                 let senderName = chatwootMessage.sender?.name;
-                if(chatwootMessage.messages != null && chatwootMessage.messages.length > 0)
+                if(chatwootMessage.conversation.messages != null && chatwootMessage.conversation.messages.length > 0)
                 {
-                    const sender = chatwootMessage.messages[0].sender;
+                    const sender = chatwootMessage.conversation.messages[0].sender;
                     senderName = sender.available_name ?? sender.name;
                 }
 
