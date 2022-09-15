@@ -164,7 +164,14 @@ expressApp.get("/", async (req, res) => {
 expressApp.post("/chatwootMessage", async (req, res) => {
     try {
         //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
+        const apiKey = req.query.api_access_token;
         const chatwootMessage = req.body;
+
+        //quick authentication with chatwoot api key
+        if(apiKey != process.env.CHATWOOT_API_KEY){
+            res.status(400);
+            return;
+        }
 
         const whatsappWebClientState = await whatsappWebClient.getState();
         //post to whatsapp only if we are connected to the client and message is not private
