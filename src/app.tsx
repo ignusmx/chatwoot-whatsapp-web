@@ -73,7 +73,7 @@ const App = (props: AppProps) => {
             puppeteer: {
                 handleSIGINT: false,
                 ...puppeteer,
-            }
+            },
         });
 
         const chatwootAPI: ChatwootAPI = new ChatwootAPI(
@@ -304,10 +304,9 @@ const App = (props: AppProps) => {
         // add gracefull closing
         process.on("SIGINT", async () => {
             setAppStatus("SIGINT signal received: closing HTTP server...");
-            
+
             server.close(() => {
-                whatsappWebClient.destroy()
-                .finally(() => {
+                whatsappWebClient.destroy().finally(() => {
                     setAppStatus("Server closed.");
                     process.exitCode = 0;
                     process.exit(0);
