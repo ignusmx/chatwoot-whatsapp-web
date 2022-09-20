@@ -10,9 +10,16 @@ export class ChatwootAPI {
     private chatwootAccountId: string;
     private whatsappWebChatwootInboxId: string;
     private whatsappWebGroupParticipantsAttributeName: string;
-    private whatsappWebClient : Client;
+    private whatsappWebClient: Client;
 
-    constructor(chatwootAPIUrl: string, chatwootApiKey: string, chatwootAccountId: string, whatsappWebChatwootInboxId: string, whatsappWebGroupParticipantsAttributeName: string, whatsappWebClient: Client) {
+    constructor(
+        chatwootAPIUrl: string,
+        chatwootApiKey: string,
+        chatwootAccountId: string,
+        whatsappWebChatwootInboxId: string,
+        whatsappWebGroupParticipantsAttributeName: string,
+        whatsappWebClient: Client
+    ) {
         this.chatwootAPIUrl = chatwootAPIUrl;
         this.chatwootApiKey = chatwootApiKey;
         this.chatwootAccountId = chatwootAccountId;
@@ -22,16 +29,16 @@ export class ChatwootAPI {
         this.headers = { api_access_token: this.chatwootApiKey };
     }
 
-    async broadcastMessageToChatwoot(message: Message, type: string, attachment : any, messagePrefix:string | undefined) {
-        const { whatsappWebChatwootInboxId,whatsappWebClient } = this;
+    async broadcastMessageToChatwoot(message: Message, type: string, attachment: any, messagePrefix: string | undefined) {
+        const { whatsappWebChatwootInboxId, whatsappWebClient } = this;
 
-        let chatwootConversation:any = null;
-        let sourceId:string|number = "";
+        let chatwootConversation: any = null;
+        let sourceId: string | number = "";
         let contactNumber = "";
         let contactName = "";
-        const messageChat:Chat = await message.getChat();
+        const messageChat: Chat = await message.getChat();
         const contactIdentifier = `${messageChat.id.user}@${messageChat.id.server}`;
-        
+
         //we use the chat name as the chatwoot contact name
         //when chat is private, the name of the chat represents the contact's name
         //when chat is group, the name of the chat represents the group name
@@ -39,31 +46,27 @@ export class ChatwootAPI {
 
         //if chat is group chat, whe use the name@groupId as the query to search for the contact
         //otherwhise we search by phone number
-        if(!messageChat.isGroup)
-        {   
+        if (!messageChat.isGroup) {
             contactNumber = `+${messageChat.id.user}`;
         }
-        
+
         let chatwootContact = await this.findChatwootContact(contactIdentifier);
 
         if (chatwootContact == null) {
             chatwootContact = await this.findChatwootContact(contactNumber);
-            if(chatwootContact == null)
-            {
+            if (chatwootContact == null) {
                 chatwootContact = await this.makeChatwootContact(
                     whatsappWebChatwootInboxId,
                     contactName,
                     contactNumber,
                     contactIdentifier
                 );
-            }
-            else
-            {
+            } else {
                 //small improvement to update identifier on contacts who don't have WA identifier
-                const updatedData = {identifier : contactIdentifier};
+                const updatedData = { identifier: contactIdentifier };
                 await this.updateChatwootContact(chatwootContact.id, updatedData);
             }
-            
+
             sourceId = chatwootContact.contact_inbox.source_id;
         } else {
             chatwootContact.contact_inboxes.forEach((inbox: { inbox: { id: string | number }; source_id: string | number }) => {
@@ -71,7 +74,10 @@ export class ChatwootAPI {
                     sourceId = inbox.source_id;
                 }
             });
-            chatwootConversation = await this.getChatwootContactConversationByInboxId(chatwootContact.id, whatsappWebChatwootInboxId);
+            chatwootConversation = await this.getChatwootContactConversationByInboxId(
+                chatwootContact.id,
+                whatsappWebChatwootInboxId
+            );
         }
 
         if (chatwootConversation == null) {
@@ -82,8 +88,7 @@ export class ChatwootAPI {
             );
 
             //we set the group members if conversation is a group chat
-            if(messageChat.isGroup)
-            {
+            if (messageChat.isGroup) {
                 this.updateChatwootConversationGroupParticipants(messageChat as GroupChat);
             }
         }
@@ -93,13 +98,18 @@ export class ChatwootAPI {
         //therefore we mark it as private so we can filter it
         //when receiving it from the webhook (in later steps) to avoid duplicated messages
         let isPrivate = false;
-        if(type == "outgoing")
-        {
+        if (type == "outgoing") {
             isPrivate = true;
-            
         }
 
-        await this.postChatwootMessage(chatwootConversation.id as string, message.body, type, isPrivate, messagePrefix, attachment);
+        await this.postChatwootMessage(
+            chatwootConversation.id as string,
+            message.body,
+            type,
+            isPrivate,
+            messagePrefix,
+            attachment
+        );
     }
 
     async findChatwootContact(query: string) {
@@ -126,7 +136,7 @@ export class ChatwootAPI {
         return payload;
     }
 
-    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier:string | undefined) {
+    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier: string | undefined) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
 
@@ -134,22 +144,26 @@ export class ChatwootAPI {
             inbox_id: inboxId,
             name: name,
             phone_number: phoneNumber,
-            identifier : identifier
+            identifier: identifier,
         };
 
         const {
             data: { payload },
-        } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + contactsEndPoint, contactPayload, { headers: headers });
+        } = <{ data: Record<string, unknown> }>(
+            await axios.post(chatwootAPIUrl + contactsEndPoint, contactPayload, { headers: headers })
+        );
         return payload;
     }
 
-    async updateChatwootContact(contactId: string | number, updatedData : any) {
+    async updateChatwootContact(contactId: string | number, updatedData: any) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}`;
 
         const {
             data: { payload },
-        } = <{ data: Record<string, unknown> }> await axios.put(chatwootAPIUrl + contactsEndPoint, updatedData, { headers: headers });
+        } = <{ data: Record<string, unknown> }>(
+            await axios.put(chatwootAPIUrl + contactsEndPoint, updatedData, { headers: headers })
+        );
         return payload;
     }
 
@@ -163,66 +177,86 @@ export class ChatwootAPI {
             contact_id: contactId,
         };
 
-        const { data } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + conversationsEndPoint, conversationPayload, { headers: headers });
+        const { data } = <{ data: Record<string, unknown> }>(
+            await axios.post(chatwootAPIUrl + conversationsEndPoint, conversationPayload, { headers: headers })
+        );
         return data;
     }
 
-    async updateChatwootConversationGroupParticipants(whatsappGroupChat:GroupChat) {
-        const {whatsappWebClient} = this;
+    async updateChatwootConversationGroupParticipants(whatsappGroupChat: GroupChat) {
+        const { whatsappWebClient } = this;
         const contactIdentifier = `${whatsappGroupChat.id.user}@${whatsappGroupChat.id.server}`;
 
-        const participantLabels:Array<string> = [];
+        const participantLabels: Array<string> = [];
         for (const participant of whatsappGroupChat.participants) {
             const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
-            const participantContact:Contact = await whatsappWebClient.getContactById(participantIdentifier);
-            const participantName:string = participantContact.name ?? participantContact.pushname ?? "+"+participantContact.number;
+            const participantContact: Contact = await whatsappWebClient.getContactById(participantIdentifier);
+            const participantName: string =
+                participantContact.name ?? participantContact.pushname ?? "+" + participantContact.number;
             const participantLabel = `[${participantName} - +${participantContact.number}]`;
             participantLabels.push(participantLabel);
         }
-        const conversationCustomAttributes = {custom_attributes:{[this.whatsappWebGroupParticipantsAttributeName]:participantLabels.join(",")}};
-        
+        const conversationCustomAttributes = {
+            custom_attributes: { [this.whatsappWebGroupParticipantsAttributeName]: participantLabels.join(",") },
+        };
+
         const chatwootContact = await this.findChatwootContact(contactIdentifier);
-        const chatwootConversation = await this.getChatwootContactConversationByInboxId(chatwootContact.id, this.whatsappWebChatwootInboxId);
-        this.updateChatwootConversationCustomAttributes(chatwootConversation.id,conversationCustomAttributes);
+        const chatwootConversation = await this.getChatwootContactConversationByInboxId(
+            chatwootContact.id,
+            this.whatsappWebChatwootInboxId
+        );
+        this.updateChatwootConversationCustomAttributes(chatwootConversation.id, conversationCustomAttributes);
     }
 
-    async updateChatwootConversationCustomAttributes(conversationId: string | number, customAttributes:any) {
+    async updateChatwootConversationCustomAttributes(conversationId: string | number, customAttributes: any) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/custom_attributes`;
 
-        const { data } = <{ data: Record<string, unknown> }> await axios.post(chatwootAPIUrl + conversationsEndPoint, customAttributes, { headers: headers });
+        const { data } = <{ data: Record<string, unknown> }>(
+            await axios.post(chatwootAPIUrl + conversationsEndPoint, customAttributes, { headers: headers })
+        );
         return data;
     }
 
-    async postChatwootMessage(conversationId: string | number, message: string, type: string, isPrivate = false, messagePrefix?:string, attachment?:any) {
+    async postChatwootMessage(
+        conversationId: string | number,
+        message: string,
+        type: string,
+        isPrivate = false,
+        messagePrefix?: string,
+        attachment?: any
+    ) {
         const { chatwootAccountId, chatwootAPIUrl } = this;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
-        
-        const bodyFormData:FormData = new FormData();
-        if(messagePrefix != null)
-        {
-            message = messagePrefix+message;
+
+        const bodyFormData: FormData = new FormData();
+        if (messagePrefix != null) {
+            message = messagePrefix + message;
         }
 
         bodyFormData.append("content", message);
         bodyFormData.append("message_type", type);
         bodyFormData.append("private", isPrivate.toString());
-        
-        const headers:AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
-        
-        if(attachment != null)
-        {
+
+        const headers: AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
+
+        if (attachment != null) {
             const buffer = Buffer.from(attachment.data, "base64");
             const extension = MimeTypes.extension(attachment.mimetype);
-            const attachmentFilename = attachment.filename ?? "attachment."+extension;
+            const attachmentFilename = attachment.filename ?? "attachment." + extension;
             bodyFormData.append("attachments[]", buffer, attachmentFilename);
         }
-        
-        const { data } = <{ data: Record<string, unknown> }>(
-            await axios.postForm(chatwootAPIUrl + messagesEndPoint, bodyFormData, { headers: headers, maxContentLength: Infinity,
-                maxBodyLength: Infinity })
+
+        const { data } = <{ data: Record<string, unknown> }>await axios.postForm(
+            chatwootAPIUrl + messagesEndPoint,
+            bodyFormData,
+            {
+                headers: headers,
+                maxContentLength: Infinity,
+                maxBodyLength: Infinity,
+            }
         );
-        
+
         return data;
     }
 
@@ -236,9 +270,9 @@ export class ChatwootAPI {
         return payload;
     }
 
-    async getChatwootContactConversationByInboxId(contactId: string | number, inboxId : string | number) {
+    async getChatwootContactConversationByInboxId(contactId: string | number, inboxId: string | number) {
         const chatwootConversations = await this.getChatwootContactConversations(contactId);
-        const chatwootConversation = chatwootConversations.find((conversation:any) => {
+        const chatwootConversation = chatwootConversations.find((conversation: any) => {
             return conversation.inbox_id == inboxId;
         });
 

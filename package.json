@@ -4,11 +4,11 @@
     "description": "",
     "main": "dist/app.js",
     "scripts": {
-        "dev": "nodemon --watch src --ext ts --exec ts-node src/app.ts",
+        "dev": "nodemon --watch src --ext ts,tsx --exec ts-node src/app.tsx",
         "start": "tsc && pm2 start dist/app.js --no-daemon",
         "stop": "pm2 stop all",
         "test": "echo \"Error: no test specified\" && exit 1",
-        "format": "prettier --write src/**/* --loglevel warn",
+        "format": "prettier --write src/ --loglevel warn",
         "lint": "npx eslint . --ext .ts --fix",
         "prepare": "husky install"
     },
@@ -22,9 +22,11 @@
         "dotenv": "^16.0.2",
         "express": "^4.18.1",
         "humps": "^2.0.1",
+        "ink": "^3.2.0",
         "is-docker": "^3.0.0",
         "pm2": "^5.2.0",
         "qrcode": "^1.5.1",
+        "react": "^17.0.2",
         "whatsapp-web.js": "^1.17.1"
     },
     "devDependencies": {
@@ -34,6 +36,7 @@
         "@types/node": "^18.7.15",
         "@types/node-fetch": "^2.6.2",
         "@types/qrcode": "^1.5.0",
+        "@types/react": "^18.0.20",
         "@typescript-eslint/eslint-plugin": "^5.36.2",
         "@typescript-eslint/parser": "^5.36.2",
         "eslint": "^8.23.0",
