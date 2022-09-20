@@ -1,6 +1,7 @@
 import fs from "fs";
 import dotenv from "dotenv";
 import express, { Express } from "express";
+import { Server } from "http";
 import axios from "axios";
 import qrcode from "qrcode";
 import humps from "humps";
@@ -40,10 +41,11 @@ if (
 
 interface AppProps {
     express: Express;
+    server: Server;
 }
 
 const App = (props: AppProps) => {
-    const { express } = props;
+    const { express, server } = props;
     const [whatsappStatus, setWhatsappStatus] = useState("Initializing WhatsApp Web...");
     const [appStatus, setAppStatus] = useState("Press ctrl+c to stop.");
     const [qr, setQr] = useState("");
@@ -57,12 +59,21 @@ const App = (props: AppProps) => {
         : {};
 
     useEffect(() => {
+        qrcode.toString("asdfasda234sdfsdfs123456g", { type: "terminal", small: true }, (err, buffer) => {
+            if (!err) {
+                setQr(buffer);
+                //console.log(buffer);
+            } else {
+                console.error(err);
+            }
+        });
+
         const whatsappWebClient = new Client({
             authStrategy: new LocalAuth(),
             puppeteer: {
                 handleSIGINT: false,
                 ...puppeteer,
-            },
+            }
         });
 
         const chatwootAPI: ChatwootAPI = new ChatwootAPI(
@@ -293,11 +304,14 @@ const App = (props: AppProps) => {
         // add gracefull closing
         process.on("SIGINT", async () => {
             setAppStatus("SIGINT signal received: closing HTTP server...");
-
-            whatsappWebClient.destroy().finally(() => {
-                setAppStatus("Server closed.");
-                process.exitCode = 0;
-                process.exit(0);
+            
+            server.close(() => {
+                whatsappWebClient.destroy()
+                .finally(() => {
+                    setAppStatus("Server closed.");
+                    process.exitCode = 0;
+                    process.exit(0);
+                });
             });
         });
     }, []);
@@ -344,6 +358,6 @@ expressApp.use(
 );
 
 //init api server
-expressApp.listen(process.env.PORT ?? "", () => {
-    render(<App express={expressApp} />);
+const server = expressApp.listen(process.env.PORT ?? "", () => {
+    render(<App express={expressApp} server={server} />);
 });
