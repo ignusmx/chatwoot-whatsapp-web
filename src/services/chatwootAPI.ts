@@ -30,7 +30,7 @@ export class ChatwootAPI {
     }
 
     async broadcastMessageToChatwoot(message: Message, type: string, attachment: any, messagePrefix: string | undefined) {
-        const { whatsappWebChatwootInboxId, whatsappWebClient } = this;
+        const { whatsappWebChatwootInboxId } = this;
 
         let chatwootConversation: any = null;
         let sourceId: string | number = "";

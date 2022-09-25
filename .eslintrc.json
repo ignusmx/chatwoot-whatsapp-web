@@ -40,9 +40,6 @@
         ],
         "no-invalid-this": [
             "error"
-        ],
-        "no-underscore-dangle": [
-            "error"
         ]
     }
 }
