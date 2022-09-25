@@ -60,7 +60,7 @@ export default class ExpressRoutes {
                                 const mentionIdentifier = mention
                                     .substring(1)
                                     .replaceAll("+", "")
-                                    .replaceAll('"', "")
+                                    .replaceAll("\"", "")
                                     .replaceAll("'", "")
                                     .toLowerCase();
                                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;

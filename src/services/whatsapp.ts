@@ -27,10 +27,10 @@ export default class WhatsApp {
 
         const puppeteer = process.env.DOCKERIZED
             ? {
-                  headless: true,
-                  args: ["--no-sandbox"],
-                  executablePath: "google-chrome-stable",
-              }
+                headless: true,
+                args: ["--no-sandbox"],
+                executablePath: "google-chrome-stable",
+            }
             : {};
 
         this.clientRef = new Client({
