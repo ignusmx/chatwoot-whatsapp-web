@@ -50,10 +50,11 @@ export class ChatwootAPI {
             contactNumber = `+${messageChat.id.user}`;
         }
 
-        let chatwootContact = await this.findChatwootContact(contactIdentifier);
+        let chatwootContact = await this.findChatwootContactByIdentifier(contactIdentifier);
 
         if (chatwootContact == null) {
-            chatwootContact = await this.findChatwootContact(contactNumber);
+            chatwootContact = await this.findChatwootContactByPhone(contactNumber);
+            chatwootContact
             if (chatwootContact == null) {
                 chatwootContact = await this.makeChatwootContact(
                     whatsappWebChatwootInboxId,
@@ -112,17 +113,49 @@ export class ChatwootAPI {
         );
     }
 
-    async findChatwootContact(query: string) {
+    async findChatwootContactByIdentifier(identifier: string) {
+        const contacts = await this.searchChatwootContacts(identifier);
+        if (contacts.length > 0) {
+            for (var contact of contacts) {
+                //in order to retrieve a chatwoot contact by identifier,
+                //we search contacts with query, however this can get false positives
+                //since query searches for the value in several fields, not just identifier
+                //so we add extra validation to ensure the retrieved contact's identifier
+                //actually matches searched one
+                if(contact.identifier == identifier){
+                    return contact;
+                }
+            }
+        }
+        return null;
+    }
+
+    async findChatwootContactByPhone(phone: string) {
+        const contacts = await this.searchChatwootContacts(phone);
+        if (contacts.length > 0) {
+            for (var contact of contacts) {
+                //in order to retrieve a chatwoot contact by phone,
+                //we search contacts with query, however this can get false positives
+                //since query searches for the value in several fields, not just phone number
+                //so we add extra validation to ensure the retrieved contact's phone number
+                //actually matches searched one
+                if(contact.phone_number == phone){
+                    return contact;
+                }
+            }
+        }
+        return null;
+    }
+
+    async searchChatwootContacts(query: string) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const contactSearchEndPoint = `/accounts/${chatwootAccountId}/contacts/search?q=${query}`;
 
         const {
             data: { payload },
         } = await axios.get(chatwootAPIUrl + contactSearchEndPoint, { headers: headers });
-        if (payload.length > 0) {
-            return payload[0];
-        }
-        return null;
+        
+        return payload;
     }
 
     async getChatwootContactById(id: string) {
@@ -200,7 +233,7 @@ export class ChatwootAPI {
             custom_attributes: { [this.whatsappWebGroupParticipantsAttributeName]: participantLabels.join(",") },
         };
 
-        const chatwootContact = await this.findChatwootContact(contactIdentifier);
+        const chatwootContact = await this.findChatwootContactByIdentifier(contactIdentifier);
         const chatwootConversation = await this.getChatwootContactConversationByInboxId(
             chatwootContact.id,
             this.whatsappWebChatwootInboxId
