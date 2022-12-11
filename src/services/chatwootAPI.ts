@@ -54,7 +54,7 @@ export class ChatwootAPI {
 
         if (chatwootContact == null) {
             chatwootContact = await this.findChatwootContactByPhone(contactNumber);
-            chatwootContact
+            
             if (chatwootContact == null) {
                 chatwootContact = await this.makeChatwootContact(
                     whatsappWebChatwootInboxId,
@@ -116,13 +116,13 @@ export class ChatwootAPI {
     async findChatwootContactByIdentifier(identifier: string) {
         const contacts = await this.searchChatwootContacts(identifier);
         if (contacts.length > 0) {
-            for (var contact of contacts) {
+            for (const contact of contacts) {
                 //in order to retrieve a chatwoot contact by identifier,
                 //we search contacts with query, however this can get false positives
                 //since query searches for the value in several fields, not just identifier
                 //so we add extra validation to ensure the retrieved contact's identifier
                 //actually matches searched one
-                if(contact.identifier == identifier){
+                if (contact.identifier == identifier) {
                     return contact;
                 }
             }
@@ -133,13 +133,13 @@ export class ChatwootAPI {
     async findChatwootContactByPhone(phone: string) {
         const contacts = await this.searchChatwootContacts(phone);
         if (contacts.length > 0) {
-            for (var contact of contacts) {
+            for (const contact of contacts) {
                 //in order to retrieve a chatwoot contact by phone,
                 //we search contacts with query, however this can get false positives
                 //since query searches for the value in several fields, not just phone number
                 //so we add extra validation to ensure the retrieved contact's phone number
                 //actually matches searched one
-                if(contact.phone_number == phone){
+                if (contact.phone_number == phone) {
                     return contact;
                 }
             }
@@ -154,7 +154,7 @@ export class ChatwootAPI {
         const {
             data: { payload },
         } = await axios.get(chatwootAPIUrl + contactSearchEndPoint, { headers: headers });
-        
+
         return payload;
     }
 
