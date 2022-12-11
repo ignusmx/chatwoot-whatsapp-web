@@ -90,11 +90,12 @@ export default class WhatsApp {
         this.clientRef.on("message_create", async (message) => {
             if (message.fromMe) {
                 let attachment: MessageMedia | undefined;
-                const { rawData: self } = <{ rawData: { self: string } }>message.rawData;
+                
+                const rawData = <{ self: string }>message.rawData;
                 //broadcast WA message to chatwoot only if it was created
                 //from a real device/wa web and not from chatwoot app
                 //to avoid endless loop
-                if (self.self === "in") {
+                if (rawData.self === "in") {
                     if (message.hasMedia) {
                         attachment = await message.downloadMedia();
                     }

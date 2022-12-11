@@ -54,7 +54,7 @@ export class ChatwootAPI {
 
         if (chatwootContact == null) {
             chatwootContact = await this.findChatwootContactByPhone(contactNumber);
-            
+
             if (chatwootContact == null) {
                 chatwootContact = await this.makeChatwootContact(
                     whatsappWebChatwootInboxId,
