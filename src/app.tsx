@@ -70,7 +70,7 @@ const App = (props: AppProps) => {
 
         const whatsappWebClient = new Client({
             authStrategy: new LocalAuth(),
-	        authTimeoutMs: 40000,
+            authTimeoutMs: 40000,
             puppeteer: {
                 handleSIGINT: false,
                 ...puppeteer,
@@ -193,7 +193,7 @@ const App = (props: AppProps) => {
         });
 
         whatsappWebClient.initialize().catch((err) => {
-            console.log(err);        
+            console.log(err);
             setWhatsappStatus("Error: Unable to initialize WhatsApp.");
         });
 

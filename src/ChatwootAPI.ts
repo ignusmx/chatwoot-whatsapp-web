@@ -138,7 +138,13 @@ export class ChatwootAPI {
         return payload;
     }
 
-    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier: string | undefined, avatarUrl: string) {
+    async makeChatwootContact(
+        inboxId: string | number,
+        name: string,
+        phoneNumber: string,
+        identifier: string | undefined,
+        avatarUrl: string
+    ) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
 
