@@ -70,6 +70,7 @@ const App = (props: AppProps) => {
 
         const whatsappWebClient = new Client({
             authStrategy: new LocalAuth(),
+	        authTimeoutMs: 40000,
             puppeteer: {
                 handleSIGINT: false,
                 ...puppeteer,
@@ -192,6 +193,7 @@ const App = (props: AppProps) => {
         });
 
         whatsappWebClient.initialize().catch((err) => {
+            console.log(err);        
             setWhatsappStatus("Error: Unable to initialize WhatsApp.");
         });
 
@@ -276,7 +278,7 @@ const App = (props: AppProps) => {
                             senderName = sender.available_name ?? sender.name;
                         }
 
-                        formattedMessage = `${senderName}: ${formattedMessage ?? ""}`;
+                        formattedMessage = `*${senderName}*:\r\n${formattedMessage ?? ""}`;
                     }
 
                     if (messageData.attachments != null && messageData.attachments.length > 0) {

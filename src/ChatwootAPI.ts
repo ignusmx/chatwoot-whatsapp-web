@@ -55,11 +55,13 @@ export class ChatwootAPI {
         if (chatwootContact == null) {
             chatwootContact = await this.findChatwootContact(contactNumber);
             if (chatwootContact == null) {
+                const avatarUrl = await (await messageChat.getContact()).getProfilePicUrl();
                 chatwootContact = await this.makeChatwootContact(
                     whatsappWebChatwootInboxId,
                     contactName,
                     contactNumber,
-                    contactIdentifier
+                    contactIdentifier,
+                    avatarUrl
                 );
             } else {
                 //small improvement to update identifier on contacts who don't have WA identifier
@@ -136,7 +138,7 @@ export class ChatwootAPI {
         return payload;
     }
 
-    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier: string | undefined) {
+    async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier: string | undefined, avatarUrl: string) {
         const { chatwootAccountId, chatwootAPIUrl, headers } = this;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
 
@@ -145,6 +147,7 @@ export class ChatwootAPI {
             name: name,
             phone_number: phoneNumber,
             identifier: identifier,
+            avatar_url: avatarUrl,
         };
 
         const {
