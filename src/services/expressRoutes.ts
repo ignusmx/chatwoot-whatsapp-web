@@ -86,7 +86,7 @@ export default class ExpressRoutes {
                             senderName = sender.available_name ?? sender.name;
                         }
 
-                        formattedMessage = `${senderName}: ${formattedMessage ?? ""}`;
+                        formattedMessage = `*${senderName}*:\r\n ${formattedMessage ?? ""}`;
                     }
 
                     if (messageData.attachments != null && messageData.attachments.length > 0) {
