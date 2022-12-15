@@ -33,11 +33,11 @@ export class ChatwootAPI {
         const { whatsappWebChatwootInboxId } = this;
 
         let chatwootConversation: any = null;
-        let sourceId: string | number = "";
         let contactNumber = "";
         let contactName = "";
         const messageChat: Chat = await message.getChat();
         const contactIdentifier = `${messageChat.id.user}@${messageChat.id.server}`;
+        const sourceId = "WhatsappWeb.js:"+contactIdentifier;
 
         //we use the chat name as the chatwoot contact name
         //when chat is private, the name of the chat represents the contact's name
@@ -67,14 +67,7 @@ export class ChatwootAPI {
                 const updatedData = { identifier: contactIdentifier };
                 await this.updateChatwootContact(chatwootContact.id, updatedData);
             }
-
-            sourceId = chatwootContact.contact_inbox.source_id;
         } else {
-            chatwootContact.contact_inboxes.forEach((inbox: { inbox: { id: string | number }; source_id: string | number }) => {
-                if (inbox.inbox.id == whatsappWebChatwootInboxId) {
-                    sourceId = inbox.source_id;
-                }
-            });
             chatwootConversation = await this.getChatwootContactConversationByInboxId(
                 chatwootContact.id,
                 whatsappWebChatwootInboxId

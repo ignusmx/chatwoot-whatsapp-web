@@ -32,7 +32,7 @@ export default class WhatsApp {
                 executablePath: "google-chrome-stable",
             }
             : {
-                args: ["--no-sandbox"]
+                args: ["--no-sandbox"],
             };
 
         this.clientRef = new Client({
