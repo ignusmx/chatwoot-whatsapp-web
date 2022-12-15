@@ -56,11 +56,8 @@ export class ChatwootAPI {
             chatwootContact = await this.findChatwootContactByPhone(contactNumber);
 
             if (chatwootContact == null) {
-                let result = <{contact:object}>await this.makeChatwootContact(
-                    whatsappWebChatwootInboxId,
-                    contactName,
-                    contactNumber,
-                    contactIdentifier
+                const result = <{ contact: object }>(
+                    await this.makeChatwootContact(whatsappWebChatwootInboxId, contactName, contactNumber, contactIdentifier)
                 );
                 chatwootContact = result.contact;
             } else {
