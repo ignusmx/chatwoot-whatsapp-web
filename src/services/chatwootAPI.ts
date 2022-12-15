@@ -37,7 +37,7 @@ export class ChatwootAPI {
         let contactName = "";
         const messageChat: Chat = await message.getChat();
         const contactIdentifier = `${messageChat.id.user}@${messageChat.id.server}`;
-        const sourceId = "WhatsappWeb.js:"+contactIdentifier;
+        const sourceId = "WhatsappWeb.js:" + contactIdentifier;
 
         //we use the chat name as the chatwoot contact name
         //when chat is private, the name of the chat represents the contact's name
