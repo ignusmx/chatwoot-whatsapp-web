@@ -31,7 +31,9 @@ export default class WhatsApp {
                 args: ["--no-sandbox"],
                 executablePath: "google-chrome-stable",
             }
-            : {};
+            : {
+                args: ["--no-sandbox"]
+            };
 
         this.clientRef = new Client({
             authStrategy: new LocalAuth(),
