@@ -60,7 +60,7 @@ export default class ExpressRoutes {
                                 const mentionIdentifier = mention
                                     .substring(1)
                                     .replaceAll("+", "")
-                                    .replaceAll("\"", "")
+                                    .replaceAll('"', "")
                                     .replaceAll("'", "")
                                     .toLowerCase();
                                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
@@ -86,7 +86,7 @@ export default class ExpressRoutes {
                             senderName = sender.available_name ?? sender.name;
                         }
 
-                        formattedMessage = `*${senderName}*:\r\n ${formattedMessage ?? ""}`;
+                        formattedMessage = `*${senderName}*:\r\n${formattedMessage ?? ""}`;
                     }
 
                     if (messageData.attachments != null && messageData.attachments.length > 0) {
