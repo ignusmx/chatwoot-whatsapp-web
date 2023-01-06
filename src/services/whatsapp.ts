@@ -7,7 +7,6 @@ export default class WhatsApp {
     private clientRef: Client;
     private _clientId: string;
 
-
     public get client(): Client {
         return this.clientRef;
     }
@@ -17,8 +16,12 @@ export default class WhatsApp {
     }
 
     private chatwootRef: ChatwootAPI | undefined;
-    public set chatwoot(v: ChatwootAPI) {
+    public set chatwoot(v: ChatwootAPI | undefined) {
         this.chatwootRef = v;
+    }
+
+    public get chatwoot():ChatwootAPI | undefined {
+        return this.chatwootRef;
     }
 
     private setWhatsappStatusRef: React.Dispatch<React.SetStateAction<string>>;
@@ -44,8 +47,7 @@ export default class WhatsApp {
             };
 
         this.clientRef = new Client({
-            authStrategy: new LocalAuth(
-                {clientId:this._clientId}),
+            authStrategy: new LocalAuth({ clientId: this._clientId }),
             puppeteer: {
                 // handleSIGINT: false,
                 ...puppeteer,
@@ -53,9 +55,8 @@ export default class WhatsApp {
         });
 
         this.clientRef.on("qr", (qr) => {
-            const statusRef = 
-            `WhatsApp needs to connect, use the following to QR to authorize it.\n
-            (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`;
+            const statusRef = "WhatsApp needs to connect, use the following to QR to authorize it."+
+            `(Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`;
 
             this.setWhatsappStatusRef(statusRef);
 
@@ -80,8 +81,8 @@ export default class WhatsApp {
         });
 
         this.clientRef.on("ready", () => {
-            this.setWhatsappStatusRef(`WhatsApp client is ready 
-            (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`);
+            this.setWhatsappStatusRef("WhatsApp client is ready"+
+            `(Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`);
             this.setQRRef("");
         });
 
@@ -135,10 +136,12 @@ export default class WhatsApp {
             const groupChat: GroupChat = (await groupNotification.getChat()) as GroupChat;
             this.chatwootRef?.updateChatwootConversationGroupParticipants(groupChat);
         });
+    }
 
-        this.clientRef.initialize().catch(() => {
-            this.setWhatsappStatusRef(`Error: Unable to initialize WhatsApp. 
-            (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`);
+    public initialize(){
+        this.clientRef.initialize().catch((e) => {
+            this.setWhatsappStatusRef("Error: Unable to initialize WhatsApp."+
+            `(Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`);
         });
     }
 }

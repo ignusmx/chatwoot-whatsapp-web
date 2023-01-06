@@ -18,9 +18,11 @@ const accounts = accountsConfig.accounts;
 
 const App = (props: AppProps) => {
     const { express, server } = props;
-    const [whatsappStatus, setWhatsappStatus] = useState("Initializing WhatsApp Web...");
+    const [whatsappStatus, setWhatsappStatus] = useState("Loading accounts config file...");
     const [appStatus, setAppStatus] = useState("Press ctrl+c to stop.");
     const [qr, setQr] = useState("");
+
+    let pendingInitWhatsappClients:Array<WhatsApp> = [];
 
     useEffect(() => {
         let chatwootAPIMap: any = {};
@@ -37,16 +39,38 @@ const App = (props: AppProps) => {
                     slackToken: whatsappWebInbox.slackToken,
                     remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix,
                 };
+
+                const whatsappClient = new WhatsApp(
+                    `inbox_${chatwootConfig.whatsappWebChatwootInboxId}`,
+                    setWhatsappStatus,
+                    setQr
+                );
+
+                whatsappClient.client.on("ready", () => {
+                    pendingInitWhatsappClients.shift();
+                    
+                    if(pendingInitWhatsappClients.length > 0){
+                        setWhatsappStatus("WhatsApp Web client succesfully initialized. Initializing WhatsApp Web Client for next inbox..."+
+                        `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`);
+                        pendingInitWhatsappClients[0].initialize();
+                    }
+                    else{
+                        setWhatsappStatus(`All WhatsApp Web clients succesfully initialized.`);
+                    }
+                });
+
+                pendingInitWhatsappClients.push(whatsappClient);
                 
-                const whatsappClient = new WhatsApp(`inbox_${chatwootConfig.whatsappWebChatwootInboxId}`, setWhatsappStatus, setQr);
-
                 const chatwootAPI: ChatwootAPI = new ChatwootAPI(chatwootConfig, whatsappClient);
-
                 chatwootAPIMap[whatsappWebInbox.id] = chatwootAPI;
             }
         }
-
+        
+        setWhatsappStatus("Initializing WhatsApp Web Client for Inbox..."+
+        `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`);
         ExpressRoutes.configure(express, chatwootAPIMap);
+
+        pendingInitWhatsappClients[0].initialize();
 
         // add gracefull closing
         process.on("SIGINT", async () => {
