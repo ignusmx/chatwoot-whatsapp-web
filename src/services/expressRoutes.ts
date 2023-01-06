@@ -15,9 +15,9 @@ export default class ExpressRoutes {
             try {
                 //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
                 const token = req.query.token;
-                const inboxId:string = <string>req.query.inboxId;
+                const inboxId: string = <string>req.query.inboxId;
                 const chatwootMessage = req.body;
-                const chatwootAPI:ChatwootAPI = chatwootAPIMap[inboxId];
+                const chatwootAPI: ChatwootAPI = chatwootAPIMap[inboxId];
 
                 //validate we have a chatwootAPI and whatsapp web client configured for this inbox
                 if (chatwootAPI == null) {
@@ -74,7 +74,9 @@ export default class ExpressRoutes {
                                     .replaceAll("'", "")
                                     .toLowerCase();
                                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
-                                const contact: Contact = await chatwootAPI.whatsapp.client.getContactById(participantIdentifier);
+                                const contact: Contact = await chatwootAPI.whatsapp.client.getContactById(
+                                    participantIdentifier
+                                );
                                 if (
                                     (contact.name != null && contact.name.toLowerCase().includes(mentionIdentifier)) ||
                                     (contact.pushname != null && contact.pushname.toLowerCase().includes(mentionIdentifier)) ||

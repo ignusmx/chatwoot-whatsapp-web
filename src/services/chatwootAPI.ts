@@ -10,18 +10,15 @@ export class ChatwootAPI {
     private apiConfig: ChatwootAPIConfig;
     private whatsappWebService: WhatsApp;
 
-    public get config():ChatwootAPIConfig {
-        return {...this.apiConfig};
+    public get config(): ChatwootAPIConfig {
+        return { ...this.apiConfig };
     }
 
-    public get whatsapp():WhatsApp {
+    public get whatsapp(): WhatsApp {
         return this.whatsappWebService;
     }
 
-    constructor(
-        config : ChatwootAPIConfig,
-        whatsappWebService: WhatsApp
-    ) {
+    constructor(config: ChatwootAPIConfig, whatsappWebService: WhatsApp) {
         this.apiConfig = config;
         this.headers = { api_access_token: this.config.chatwootApiKey };
         this.whatsappWebService = whatsappWebService;
@@ -138,7 +135,7 @@ export class ChatwootAPI {
     }
 
     async searchChatwootContacts(query: string) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactSearchEndPoint = `/accounts/${chatwootAccountId}/contacts/search?q=${query}`;
 
@@ -150,7 +147,7 @@ export class ChatwootAPI {
     }
 
     async getChatwootContactById(id: string) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactSearchEndPoint = `/accounts/${chatwootAccountId}/contacts/${id}`;
 
@@ -162,7 +159,7 @@ export class ChatwootAPI {
     }
 
     async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier: string | undefined) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
 
@@ -182,7 +179,7 @@ export class ChatwootAPI {
     }
 
     async updateChatwootContact(contactId: string | number, updatedData: any) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}`;
 
@@ -195,7 +192,7 @@ export class ChatwootAPI {
     }
 
     async makeChatwootConversation(sourceId: string | number, inboxId: string | number, contactId: string | number) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations`;
 
@@ -237,7 +234,7 @@ export class ChatwootAPI {
     }
 
     async updateChatwootConversationCustomAttributes(conversationId: string | number, customAttributes: any) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/custom_attributes`;
 
@@ -290,7 +287,7 @@ export class ChatwootAPI {
     }
 
     async getChatwootContactConversations(contactId: string | number) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}/conversations`;
 
@@ -310,7 +307,7 @@ export class ChatwootAPI {
     }
 
     async getChatwootConversationMessages(conversationId: string) {
-        const {headers} = this;
+        const { headers } = this;
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
 

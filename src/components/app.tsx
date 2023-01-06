@@ -13,7 +13,7 @@ interface AppProps {
     server: Server;
 }
 
-const accountsConfig = JSON.parse(fs.readFileSync('./accounts-config.json').toString());
+const accountsConfig = JSON.parse(fs.readFileSync("./accounts-config.json").toString());
 const accounts = accountsConfig.accounts;
 
 const App = (props: AppProps) => {
@@ -23,12 +23,11 @@ const App = (props: AppProps) => {
     const [qr, setQr] = useState("");
 
     useEffect(() => {
-        let chatwootAPIMap:any = {};
+        let chatwootAPIMap: any = {};
         for (const account of accounts) {
-            for(const whatsappWebInbox of account.whatsappWebInboxes){
-                const chatwootConfig: ChatwootAPIConfig = 
-                {
-                    authToken:account.authToken,
+            for (const whatsappWebInbox of account.whatsappWebInboxes) {
+                const chatwootConfig: ChatwootAPIConfig = {
+                    authToken: account.authToken,
                     chatwootAPIUrl: account.chatwootAPIUrl,
                     chatwootApiKey: account.chatwootApiKey,
                     chatwootAccountId: account.id,
@@ -36,20 +35,17 @@ const App = (props: AppProps) => {
                     whatsappWebChatwootInboxId: whatsappWebInbox.id,
                     prefixAgentNameOnMessages: whatsappWebInbox.prefixAgentNameOnMessages,
                     slackToken: whatsappWebInbox.slackToken,
-                    remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix
+                    remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix,
                 };
 
                 const whatsappClient = new WhatsApp(setWhatsappStatus, setQr);
 
-                const chatwootAPI: ChatwootAPI = new ChatwootAPI(
-                    chatwootConfig,
-                    whatsappClient
-                );
-                
+                const chatwootAPI: ChatwootAPI = new ChatwootAPI(chatwootConfig, whatsappClient);
+
                 chatwootAPIMap[whatsappWebInbox.id] = chatwootAPI;
             }
         }
-        
+
         ExpressRoutes.configure(express, chatwootAPIMap);
 
         // add gracefull closing
@@ -58,7 +54,7 @@ const App = (props: AppProps) => {
 
             server.close(() => {
                 for (const inboxId in chatwootAPIMap) {
-                    const chatwootAPI:ChatwootAPI = chatwootAPIMap[inboxId];
+                    const chatwootAPI: ChatwootAPI = chatwootAPIMap[inboxId];
                     chatwootAPI.whatsapp.client.destroy().finally(() => {
                         setAppStatus("Server closed.");
                         process.exitCode = 0;

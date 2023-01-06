@@ -6,7 +6,6 @@ import { ChatwootAPI } from "./chatwootAPI";
 export default class WhatsApp {
     private clientRef: Client;
 
-
     public get client(): Client {
         return this.clientRef;
     }
@@ -37,9 +36,7 @@ export default class WhatsApp {
             };
 
         this.clientRef = new Client({
-            authStrategy: new LocalAuth(
-                {clientId:`inbox_${this.chatwootRef?.config.whatsappWebChatwootInboxId}`}
-                ),
+            authStrategy: new LocalAuth({ clientId: `inbox_${this.chatwootRef?.config.whatsappWebChatwootInboxId}` }),
             puppeteer: {
                 // handleSIGINT: false,
                 ...puppeteer,
@@ -47,9 +44,8 @@ export default class WhatsApp {
         });
 
         this.clientRef.on("qr", (qr) => {
-            console.log("asd "+this.chatwootRef?.config.whatsappWebChatwootInboxId);
-            const statusRef = 
-            `WhatsApp needs to connect, use the following to QR to authorize it.\n
+            console.log("asd " + this.chatwootRef?.config.whatsappWebChatwootInboxId);
+            const statusRef = `WhatsApp needs to connect, use the following to QR to authorize it.\n
             (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`;
 
             this.setWhatsappStatusRef(statusRef);
