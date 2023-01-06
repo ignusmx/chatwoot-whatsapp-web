@@ -37,8 +37,8 @@ const App = (props: AppProps) => {
                     slackToken: whatsappWebInbox.slackToken,
                     remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix,
                 };
-
-                const whatsappClient = new WhatsApp(setWhatsappStatus, setQr);
+                
+                const whatsappClient = new WhatsApp(`inbox_${chatwootConfig.whatsappWebChatwootInboxId}`, setWhatsappStatus, setQr);
 
                 const chatwootAPI: ChatwootAPI = new ChatwootAPI(chatwootConfig, whatsappClient);
 

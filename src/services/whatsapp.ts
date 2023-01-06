@@ -5,9 +5,15 @@ import { ChatwootAPI } from "./chatwootAPI";
 
 export default class WhatsApp {
     private clientRef: Client;
+    private _clientId: string;
+
 
     public get client(): Client {
         return this.clientRef;
+    }
+
+    public get clientId(): string {
+        return this._clientId;
     }
 
     private chatwootRef: ChatwootAPI | undefined;
@@ -19,12 +25,14 @@ export default class WhatsApp {
     private setQRRef: React.Dispatch<React.SetStateAction<string>>;
 
     constructor(
+        clientId: string,
         setWhatsappStatus: React.Dispatch<React.SetStateAction<string>>,
         setQR: React.Dispatch<React.SetStateAction<string>>
     ) {
+        this._clientId = clientId;
         this.setWhatsappStatusRef = setWhatsappStatus;
         this.setQRRef = setQR;
-        console.log("client created!");
+
         const puppeteer = process.env.DOCKERIZED
             ? {
                 headless: true,
@@ -36,7 +44,8 @@ export default class WhatsApp {
             };
 
         this.clientRef = new Client({
-            authStrategy: new LocalAuth({ clientId: `inbox_${this.chatwootRef?.config.whatsappWebChatwootInboxId}` }),
+            authStrategy: new LocalAuth(
+                {clientId:this._clientId}),
             puppeteer: {
                 // handleSIGINT: false,
                 ...puppeteer,
@@ -44,8 +53,8 @@ export default class WhatsApp {
         });
 
         this.clientRef.on("qr", (qr) => {
-            console.log("asd " + this.chatwootRef?.config.whatsappWebChatwootInboxId);
-            const statusRef = `WhatsApp needs to connect, use the following to QR to authorize it.\n
+            const statusRef = 
+            `WhatsApp needs to connect, use the following to QR to authorize it.\n
             (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`;
 
             this.setWhatsappStatusRef(statusRef);
