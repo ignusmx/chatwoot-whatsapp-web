@@ -1,0 +1,26 @@
+{
+    "accounts":
+    [
+        {
+            "id":1,
+            "authToken":"hP11MBHuRNxbTGG27wzZuTKP",
+            "chatwootAPIUrl":"",
+            "chatwootApiKey":"hP11MBHuRNxbTGG27wzZuTKP",
+            "whatsappWebGroupParticipantsCustomField":"asd",
+            "whatsappWebInboxes":[
+                {
+                    "id":10, 
+                    "prefixAgentNameOnMessages":true,
+                    "slackToken":null,
+                    "remotePrivateMessagePrefix":true
+                },
+                {
+                    "id":12, 
+                    "prefixAgentNameOnMessages":true,
+                    "slackToken":null,
+                    "remotePrivateMessagePrefix":true
+                }
+            ]
+        }
+    ]
+}

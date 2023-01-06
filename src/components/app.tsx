@@ -5,11 +5,16 @@ import React, { useState, useEffect } from "react";
 import { Box, Newline, Text } from "ink";
 import WhatsApp from "../services/whatsapp";
 import ExpressRoutes from "../services/expressRoutes";
+import { ChatwootAPIConfig } from "../types";
+import fs from "fs";
 
 interface AppProps {
     express: Express;
     server: Server;
 }
+
+const accountsConfig = JSON.parse(fs.readFileSync('./accounts-config.json').toString());
+const accounts = accountsConfig.accounts;
 
 const App = (props: AppProps) => {
     const { express, server } = props;
@@ -18,31 +23,48 @@ const App = (props: AppProps) => {
     const [qr, setQr] = useState("");
 
     useEffect(() => {
-        const whatsappClient = new WhatsApp(setWhatsappStatus, setQr);
+        let chatwootAPIMap:any = {};
+        for (const account of accounts) {
+            for(const whatsappWebInbox of account.whatsappWebInboxes){
+                const chatwootConfig: ChatwootAPIConfig = 
+                {
+                    authToken:account.authToken,
+                    chatwootAPIUrl: account.chatwootAPIUrl,
+                    chatwootApiKey: account.chatwootApiKey,
+                    chatwootAccountId: account.id,
+                    whatsappWebGroupParticipantsAttributeName: account.whatsappWebGroupParticipantsCustomField,
+                    whatsappWebChatwootInboxId: whatsappWebInbox.id,
+                    prefixAgentNameOnMessages: whatsappWebInbox.prefixAgentNameOnMessages,
+                    slackToken: whatsappWebInbox.slackToken,
+                    remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix
+                };
 
-        const chatwootAPI: ChatwootAPI = new ChatwootAPI(
-            process.env.CHATWOOT_API_URL ?? "",
-            process.env.CHATWOOT_API_KEY ?? "",
-            process.env.CHATWOOT_ACCOUNT_ID ?? "",
-            process.env.CHATWOOT_WW_INBOX_ID ?? "",
-            process.env.CHATWOOT_WW_GROUP_PARTICIPANTS_ATTRIBUTE_NAME ?? "",
-            whatsappClient.client
-        );
+                const whatsappClient = new WhatsApp(setWhatsappStatus, setQr);
 
-        whatsappClient.chatwoot = chatwootAPI;
-
-        ExpressRoutes.configure(express, whatsappClient, chatwootAPI);
+                const chatwootAPI: ChatwootAPI = new ChatwootAPI(
+                    chatwootConfig,
+                    whatsappClient
+                );
+                
+                chatwootAPIMap[whatsappWebInbox.id] = chatwootAPI;
+            }
+        }
+        
+        ExpressRoutes.configure(express, chatwootAPIMap);
 
         // add gracefull closing
         process.on("SIGINT", async () => {
             setAppStatus("SIGINT signal received: closing HTTP server...");
 
             server.close(() => {
-                whatsappClient.client.destroy().finally(() => {
-                    setAppStatus("Server closed.");
-                    process.exitCode = 0;
-                    process.exit(0);
-                });
+                for (const inboxId in chatwootAPIMap) {
+                    const chatwootAPI:ChatwootAPI = chatwootAPIMap[inboxId];
+                    chatwootAPI.whatsapp.client.destroy().finally(() => {
+                        setAppStatus("Server closed.");
+                        process.exitCode = 0;
+                        process.exit(0);
+                    });
+                }
             });
         });
     }, []);

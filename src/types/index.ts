@@ -86,3 +86,15 @@ export interface MetaSender {
     thumbnail?: string;
     type?: string;
 }
+
+export interface ChatwootAPIConfig {
+    authToken: string;
+    prefixAgentNameOnMessages: boolean;
+    chatwootAPIUrl: string;
+    chatwootApiKey: string;
+    chatwootAccountId: number;
+    whatsappWebChatwootInboxId: number;
+    whatsappWebGroupParticipantsAttributeName: string;
+    slackToken: string;
+    remotePrivateMessagePrefix: string;
+}

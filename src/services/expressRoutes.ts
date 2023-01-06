@@ -1,10 +1,9 @@
 import { Express } from "express";
-import WhatsApp from "./whatsapp";
 import { ChatwootAPI } from "./chatwootAPI";
 import { Contact, GroupChat, GroupParticipant, MessageContent, MessageMedia } from "whatsapp-web.js";
 
 export default class ExpressRoutes {
-    public static configure(express: Express, whatsappClient: WhatsApp, chatwootAPI: ChatwootAPI) {
+    public static configure(express: Express, chatwootAPIMap: any) {
         express.get("/", async (req, res) => {
             res.status(200).json({
                 status: "OK",
@@ -15,11 +14,22 @@ export default class ExpressRoutes {
         express.post("/chatwootMessage", async (req, res) => {
             try {
                 //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
-                const { token } = req.query;
+                const token = req.query.token;
+                const inboxId:string = <string>req.query.inboxId;
                 const chatwootMessage = req.body;
+                const chatwootAPI:ChatwootAPI = chatwootAPIMap[inboxId];
+
+                //validate we have a chatwootAPI and whatsapp web client configured for this inbox
+                if (chatwootAPI == null) {
+                    res.status(400).json({
+                        result: "API Client not found for this inbox. Verify Chatwoot Whatsapp Web service configuration.",
+                    });
+
+                    return;
+                }
 
                 //quick authentication with chatwoot api key
-                if (process.env.CHATWOOT_WEBHOOK_TOKEN && token != process.env.CHATWOOT_WEBHOOK_TOKEN) {
+                if (token != chatwootAPI.config.authToken) {
                     res.status(401).json({
                         result: "Unauthorized access. Please provide a valid token.",
                     });
@@ -27,11 +37,11 @@ export default class ExpressRoutes {
                     return;
                 }
 
-                const whatsappWebClientState = await whatsappClient.client.getState();
+                const whatsappWebClientState = await chatwootAPIMap.whatsapp.client.getState();
                 //post to whatsapp only if we are connected to the client and message is not private
                 if (
                     whatsappWebClientState === "CONNECTED" &&
-                    chatwootMessage.inbox.id == process.env.CHATWOOT_WW_INBOX_ID &&
+                    chatwootMessage.inbox.id == chatwootAPI.config.whatsappWebChatwootInboxId &&
                     chatwootMessage.message_type == "outgoing" &&
                     !chatwootMessage.private
                 ) {
@@ -53,7 +63,7 @@ export default class ExpressRoutes {
 
                     if (formattedMessage != null && chatwootMentions != null) {
                         const whatsappMentions: Array<Contact> = [];
-                        const groupChat: GroupChat = (await whatsappClient.client.getChatById(to)) as GroupChat;
+                        const groupChat: GroupChat = (await chatwootAPI.whatsapp.client.getChatById(to)) as GroupChat;
                         const groupParticipants: Array<GroupParticipant> = groupChat.participants;
                         for (const mention of chatwootMentions) {
                             for (const participant of groupParticipants) {
@@ -64,7 +74,7 @@ export default class ExpressRoutes {
                                     .replaceAll("'", "")
                                     .toLowerCase();
                                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
-                                const contact: Contact = await whatsappClient.client.getContactById(participantIdentifier);
+                                const contact: Contact = await chatwootAPI.whatsapp.client.getContactById(participantIdentifier);
                                 if (
                                     (contact.name != null && contact.name.toLowerCase().includes(mentionIdentifier)) ||
                                     (contact.pushname != null && contact.pushname.toLowerCase().includes(mentionIdentifier)) ||
@@ -79,7 +89,7 @@ export default class ExpressRoutes {
                         options.mentions = whatsappMentions;
                     }
 
-                    if (process.env.PREFIX_AGENT_NAME_ON_MESSAGES == "true") {
+                    if (chatwootAPI.config.prefixAgentNameOnMessages) {
                         let senderName = chatwootMessage.sender?.name;
                         if (chatwootMessage.conversation.messages != null && chatwootMessage.conversation.messages.length > 0) {
                             const sender = chatwootMessage.conversation.messages[0].sender;
@@ -101,7 +111,7 @@ export default class ExpressRoutes {
                     }
 
                     if (messageContent != null) {
-                        whatsappClient.client.sendMessage(to, messageContent, options);
+                        chatwootAPI.whatsapp.client.sendMessage(to, messageContent, options);
                     }
                 }
 

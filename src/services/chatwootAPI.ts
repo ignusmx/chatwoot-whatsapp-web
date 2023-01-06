@@ -1,36 +1,35 @@
 import axios, { AxiosRequestHeaders } from "axios";
-import { Message, Chat, GroupChat, Client, Contact } from "whatsapp-web.js";
+import { Message, Chat, GroupChat, Contact } from "whatsapp-web.js";
+import WhatsApp from "../services/whatsapp";
 import FormData from "form-data";
 import MimeTypes from "mime-types";
+import { ChatwootAPIConfig } from "../types";
 
 export class ChatwootAPI {
     private headers: AxiosRequestHeaders | undefined;
-    private chatwootAPIUrl: string;
-    private chatwootApiKey: string;
-    private chatwootAccountId: string;
-    private whatsappWebChatwootInboxId: string;
-    private whatsappWebGroupParticipantsAttributeName: string;
-    private whatsappWebClient: Client;
+    private apiConfig: ChatwootAPIConfig;
+    private whatsappWebService: WhatsApp;
+
+    public get config():ChatwootAPIConfig {
+        return {...this.apiConfig};
+    }
+
+    public get whatsapp():WhatsApp {
+        return this.whatsappWebService;
+    }
 
     constructor(
-        chatwootAPIUrl: string,
-        chatwootApiKey: string,
-        chatwootAccountId: string,
-        whatsappWebChatwootInboxId: string,
-        whatsappWebGroupParticipantsAttributeName: string,
-        whatsappWebClient: Client
+        config : ChatwootAPIConfig,
+        whatsappWebService: WhatsApp
     ) {
-        this.chatwootAPIUrl = chatwootAPIUrl;
-        this.chatwootApiKey = chatwootApiKey;
-        this.chatwootAccountId = chatwootAccountId;
-        this.whatsappWebChatwootInboxId = whatsappWebChatwootInboxId;
-        this.whatsappWebClient = whatsappWebClient;
-        this.whatsappWebGroupParticipantsAttributeName = whatsappWebGroupParticipantsAttributeName;
-        this.headers = { api_access_token: this.chatwootApiKey };
+        this.apiConfig = config;
+        this.headers = { api_access_token: this.config.chatwootApiKey };
+        this.whatsappWebService = whatsappWebService;
+        this.whatsappWebService.chatwoot = this;
     }
 
     async broadcastMessageToChatwoot(message: Message, type: string, attachment: any, messagePrefix: string | undefined) {
-        const { whatsappWebChatwootInboxId } = this;
+        const { whatsappWebChatwootInboxId } = this.apiConfig;
 
         let chatwootConversation: any = null;
         let contactNumber = "";
@@ -139,7 +138,8 @@ export class ChatwootAPI {
     }
 
     async searchChatwootContacts(query: string) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactSearchEndPoint = `/accounts/${chatwootAccountId}/contacts/search?q=${query}`;
 
         const {
@@ -150,7 +150,8 @@ export class ChatwootAPI {
     }
 
     async getChatwootContactById(id: string) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactSearchEndPoint = `/accounts/${chatwootAccountId}/contacts/${id}`;
 
         const {
@@ -161,7 +162,8 @@ export class ChatwootAPI {
     }
 
     async makeChatwootContact(inboxId: string | number, name: string, phoneNumber: string, identifier: string | undefined) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts`;
 
         const contactPayload = {
@@ -180,7 +182,8 @@ export class ChatwootAPI {
     }
 
     async updateChatwootContact(contactId: string | number, updatedData: any) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const contactsEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}`;
 
         const {
@@ -191,8 +194,9 @@ export class ChatwootAPI {
         return payload;
     }
 
-    async makeChatwootConversation(sourceId: string | number, inboxId: string, contactId: string | number) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+    async makeChatwootConversation(sourceId: string | number, inboxId: string | number, contactId: string | number) {
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations`;
 
         const conversationPayload = {
@@ -208,32 +212,33 @@ export class ChatwootAPI {
     }
 
     async updateChatwootConversationGroupParticipants(whatsappGroupChat: GroupChat) {
-        const { whatsappWebClient } = this;
+        const { whatsappWebService } = this;
         const contactIdentifier = `${whatsappGroupChat.id.user}@${whatsappGroupChat.id.server}`;
 
         const participantLabels: Array<string> = [];
         for (const participant of whatsappGroupChat.participants) {
             const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
-            const participantContact: Contact = await whatsappWebClient.getContactById(participantIdentifier);
+            const participantContact: Contact = await whatsappWebService.client.getContactById(participantIdentifier);
             const participantName: string =
                 participantContact.name ?? participantContact.pushname ?? "+" + participantContact.number;
             const participantLabel = `[${participantName} - +${participantContact.number}]`;
             participantLabels.push(participantLabel);
         }
         const conversationCustomAttributes = {
-            custom_attributes: { [this.whatsappWebGroupParticipantsAttributeName]: participantLabels.join(",") },
+            custom_attributes: { [this.apiConfig.whatsappWebGroupParticipantsAttributeName]: participantLabels.join(",") },
         };
 
         const chatwootContact = await this.findChatwootContactByIdentifier(contactIdentifier);
         const chatwootConversation = await this.getChatwootContactConversationByInboxId(
             chatwootContact.id,
-            this.whatsappWebChatwootInboxId
+            this.apiConfig.whatsappWebChatwootInboxId
         );
         this.updateChatwootConversationCustomAttributes(chatwootConversation.id, conversationCustomAttributes);
     }
 
     async updateChatwootConversationCustomAttributes(conversationId: string | number, customAttributes: any) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/custom_attributes`;
 
         const { data } = <{ data: Record<string, unknown> }>(
@@ -250,7 +255,7 @@ export class ChatwootAPI {
         messagePrefix?: string,
         attachment?: any
     ) {
-        const { chatwootAccountId, chatwootAPIUrl } = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
 
         const bodyFormData: FormData = new FormData();
@@ -285,7 +290,8 @@ export class ChatwootAPI {
     }
 
     async getChatwootContactConversations(contactId: string | number) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/contacts/${contactId}/conversations`;
 
         const {
@@ -304,7 +310,8 @@ export class ChatwootAPI {
     }
 
     async getChatwootConversationMessages(conversationId: string) {
-        const { chatwootAccountId, chatwootAPIUrl, headers } = this;
+        const {headers} = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
 
         const {

@@ -6,6 +6,7 @@ import { ChatwootAPI } from "./chatwootAPI";
 export default class WhatsApp {
     private clientRef: Client;
 
+
     public get client(): Client {
         return this.clientRef;
     }
@@ -24,7 +25,7 @@ export default class WhatsApp {
     ) {
         this.setWhatsappStatusRef = setWhatsappStatus;
         this.setQRRef = setQR;
-
+        console.log("client created!");
         const puppeteer = process.env.DOCKERIZED
             ? {
                 headless: true,
@@ -36,7 +37,9 @@ export default class WhatsApp {
             };
 
         this.clientRef = new Client({
-            authStrategy: new LocalAuth(),
+            authStrategy: new LocalAuth(
+                {clientId:`inbox_${this.chatwootRef?.config.whatsappWebChatwootInboxId}`}
+                ),
             puppeteer: {
                 // handleSIGINT: false,
                 ...puppeteer,
@@ -44,7 +47,12 @@ export default class WhatsApp {
         });
 
         this.clientRef.on("qr", (qr) => {
-            this.setWhatsappStatusRef("WhatsApp needs to connect, use the following to QR to authorize it.");
+            console.log("asd "+this.chatwootRef?.config.whatsappWebChatwootInboxId);
+            const statusRef = 
+            `WhatsApp needs to connect, use the following to QR to authorize it.\n
+            (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`;
+
+            this.setWhatsappStatusRef(statusRef);
 
             qrcode.toString(qr, { type: "terminal", small: true }, (err, buffer) => {
                 if (!err) {
@@ -55,7 +63,7 @@ export default class WhatsApp {
                 }
             });
 
-            if (process.env.SLACK_TOKEN) {
+            if (this.chatwootRef?.config.slackToken) {
                 qrcode.toBuffer(qr, { scale: 6 }, (err, buffer) => {
                     if (!err) {
                         Slack.broadcastQR(buffer);
@@ -67,7 +75,8 @@ export default class WhatsApp {
         });
 
         this.clientRef.on("ready", () => {
-            this.setWhatsappStatusRef("WhatsApp client is ready!");
+            this.setWhatsappStatusRef(`WhatsApp client is ready 
+            (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`);
             this.setQRRef("");
         });
 
@@ -106,7 +115,7 @@ export default class WhatsApp {
                         message,
                         "outgoing",
                         attachment,
-                        process.env.REMOTE_PRIVATE_MESSAGE_PREFIX
+                        this.chatwootRef.config.remotePrivateMessagePrefix
                     );
                 }
             }
@@ -123,7 +132,8 @@ export default class WhatsApp {
         });
 
         this.clientRef.initialize().catch(() => {
-            this.setWhatsappStatusRef("Error: Unable to initialize WhatsApp.");
+            this.setWhatsappStatusRef(`Error: Unable to initialize WhatsApp. 
+            (Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`);
         });
     }
 }
