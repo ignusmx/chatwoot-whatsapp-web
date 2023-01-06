@@ -222,7 +222,7 @@ export class ChatwootAPI {
             participantLabels.push(participantLabel);
         }
         const conversationCustomAttributes = {
-            custom_attributes: { [this.apiConfig.whatsappWebGroupParticipantsAttributeName]: participantLabels.join(",") },
+            custom_attributes: { [this.apiConfig.whatsappWebGroupParticipantsCustomField]: participantLabels.join(",") },
         };
 
         const chatwootContact = await this.findChatwootContactByIdentifier(contactIdentifier);

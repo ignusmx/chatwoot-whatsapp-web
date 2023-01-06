@@ -22,7 +22,7 @@ const App = (props: AppProps) => {
     const [appStatus, setAppStatus] = useState("Press ctrl+c to stop.");
     const [qr, setQr] = useState("");
 
-    let pendingInitWhatsappClients:Array<WhatsApp> = [];
+    let pendingInitWhatsappClients: Array<WhatsApp> = [];
 
     useEffect(() => {
         let chatwootAPIMap: any = {};
@@ -33,7 +33,7 @@ const App = (props: AppProps) => {
                     chatwootAPIUrl: account.chatwootAPIUrl,
                     chatwootApiKey: account.chatwootApiKey,
                     chatwootAccountId: account.id,
-                    whatsappWebGroupParticipantsAttributeName: account.whatsappWebGroupParticipantsCustomField,
+                    whatsappWebGroupParticipantsCustomField: account.whatsappWebGroupParticipantsCustomField,
                     whatsappWebChatwootInboxId: whatsappWebInbox.id,
                     prefixAgentNameOnMessages: whatsappWebInbox.prefixAgentNameOnMessages,
                     slackToken: whatsappWebInbox.slackToken,
@@ -48,26 +48,29 @@ const App = (props: AppProps) => {
 
                 whatsappClient.client.on("ready", () => {
                     pendingInitWhatsappClients.shift();
-                    
-                    if(pendingInitWhatsappClients.length > 0){
-                        setWhatsappStatus("WhatsApp Web client succesfully initialized. Initializing WhatsApp Web Client for next inbox..."+
-                        `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`);
+
+                    if (pendingInitWhatsappClients.length > 0) {
+                        setWhatsappStatus(
+                            "WhatsApp Web client succesfully initialized. Initializing WhatsApp Web Client for next inbox..." +
+                                `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`
+                        );
                         pendingInitWhatsappClients[0].initialize();
-                    }
-                    else{
+                    } else {
                         setWhatsappStatus(`All WhatsApp Web clients succesfully initialized.`);
                     }
                 });
 
                 pendingInitWhatsappClients.push(whatsappClient);
-                
+
                 const chatwootAPI: ChatwootAPI = new ChatwootAPI(chatwootConfig, whatsappClient);
                 chatwootAPIMap[whatsappWebInbox.id] = chatwootAPI;
             }
         }
-        
-        setWhatsappStatus("Initializing WhatsApp Web Client for Inbox..."+
-        `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`);
+
+        setWhatsappStatus(
+            "Initializing WhatsApp Web Client for Inbox..." +
+                `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`
+        );
         ExpressRoutes.configure(express, chatwootAPIMap);
 
         pendingInitWhatsappClients[0].initialize();

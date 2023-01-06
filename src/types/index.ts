@@ -94,7 +94,7 @@ export interface ChatwootAPIConfig {
     chatwootApiKey: string;
     chatwootAccountId: number;
     whatsappWebChatwootInboxId: number;
-    whatsappWebGroupParticipantsAttributeName: string;
+    whatsappWebGroupParticipantsCustomField: string;
     slackToken: string;
     remotePrivateMessagePrefix: string;
 }
