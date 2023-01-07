@@ -15,7 +15,6 @@ export default class ExpressRoutes {
             try {
                 //const chatwootMessage: ChatwootMessage = humps.camelizeKeys(req.body);
                 const token = req.query.token;
-                const inboxId: string = <string>req.query.inboxId;
                 const chatwootMessage = req.body;
                 const chatwootAPI: ChatwootAPI = chatwootAPIMap[chatwootMessage.inbox.id];
 
