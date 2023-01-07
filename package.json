@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "nodemon --watch src --ext ts,tsx --exec ts-node src/server.tsx",
         "start": "tsc && pm2 start dist/server.js --name \"Chatwoot Whatsapp Web\" --no-daemon",
-        "stop": "pm2 stop stop \"Chatwoot Whatsapp Web\"",
+        "stop": "pm2 stop \"Chatwoot Whatsapp Web\"",
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write src/ --loglevel warn",
         "lint": "npx eslint . --ext .ts --fix",
