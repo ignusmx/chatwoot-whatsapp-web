@@ -17,7 +17,7 @@ export default class ExpressRoutes {
                 const token = req.query.token;
                 const inboxId: string = <string>req.query.inboxId;
                 const chatwootMessage = req.body;
-                const chatwootAPI: ChatwootAPI = chatwootAPIMap[inboxId];
+                const chatwootAPI: ChatwootAPI = chatwootAPIMap[chatwootMessage.inbox.id];
 
                 //validate we have a chatwootAPI and whatsapp web client configured for this inbox
                 if (chatwootAPI == null) {
