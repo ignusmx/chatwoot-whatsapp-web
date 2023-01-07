@@ -37,7 +37,7 @@ export default class ExpressRoutes {
                     return;
                 }
 
-                const whatsappWebClientState = await chatwootAPIMap.whatsapp.client.getState();
+                const whatsappWebClientState = await chatwootAPI.whatsapp.client.getState();
                 //post to whatsapp only if we are connected to the client and message is not private
                 if (
                     whatsappWebClientState === "CONNECTED" &&
