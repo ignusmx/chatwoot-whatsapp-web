@@ -3,10 +3,10 @@
     [
         {
             "id":1,
-            "authToken":"hP11MBHuRNxbTGG27wzZuTKP",
+            "authToken":"",
             "chatwootAPIUrl":"",
-            "chatwootApiKey":"hP11MBHuRNxbTGG27wzZuTKP",
-            "whatsappWebGroupParticipantsCustomField":"asd",
+            "chatwootApiKey":"",
+            "whatsappWebGroupParticipantsCustomField":"",
             "whatsappWebInboxes":[
                 {
                     "id":10, 
