@@ -31,7 +31,7 @@ const App = (props: AppProps) => {
                 const chatwootConfig: ChatwootAPIConfig = {
                     authToken: account.authToken,
                     chatwootAPIUrl: account.chatwootAPIUrl,
-                    chatwootApiKey: account.chatwootApiKey,
+                    chatwootAccessToken: account.chatwootAccessToken,
                     chatwootAccountId: account.id,
                     whatsappWebGroupParticipantsCustomField: account.whatsappWebGroupParticipantsCustomField,
                     whatsappWebChatwootInboxId: whatsappWebInbox.id,

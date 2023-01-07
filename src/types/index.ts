@@ -91,7 +91,7 @@ export interface ChatwootAPIConfig {
     authToken: string;
     prefixAgentNameOnMessages: boolean;
     chatwootAPIUrl: string;
-    chatwootApiKey: string;
+    chatwootAccessToken: string;
     chatwootAccountId: number;
     whatsappWebChatwootInboxId: number;
     whatsappWebGroupParticipantsCustomField: string;

@@ -20,7 +20,7 @@ export class ChatwootAPI {
 
     constructor(config: ChatwootAPIConfig, whatsappWebService: WhatsApp) {
         this.apiConfig = config;
-        this.headers = { api_access_token: this.config.chatwootApiKey };
+        this.headers = { api_access_token: this.config.chatwootAccessToken };
         this.whatsappWebService = whatsappWebService;
         this.whatsappWebService.chatwoot = this;
     }
