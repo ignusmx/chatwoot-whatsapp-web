@@ -38,13 +38,13 @@ export default class WhatsApp {
 
         const puppeteer = process.env.DOCKERIZED
             ? {
-                  headless: true,
-                  args: ["--no-sandbox"],
-                  executablePath: "google-chrome-stable",
-              }
+                headless: true,
+                args: ["--no-sandbox"],
+                executablePath: "google-chrome-stable",
+            }
             : {
-                  args: ["--no-sandbox"],
-              };
+                args: ["--no-sandbox"],
+            };
 
         this.clientRef = new Client({
             authStrategy: new LocalAuth({ clientId: this._clientId }),
