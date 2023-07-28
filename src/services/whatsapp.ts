@@ -90,7 +90,8 @@ export default class WhatsApp {
         });
 
         this.clientRef.on("message", async (message) => {
-            if (message.broadcast) {
+            const isBroadcast = message.broadcast || message.isStatus;
+            if (isBroadcast) {
                 return false;
             }
 
