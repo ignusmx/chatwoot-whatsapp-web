@@ -12,13 +12,15 @@
                     "id":10, 
                     "prefixAgentNameOnMessages":true,
                     "slackToken":null,
-                    "remotePrivateMessagePrefix":true
+                    "remotePrivateMessagePrefix":true,
+                    "ignoreGroupMessages": true
                 },
                 {
                     "id":12, 
                     "prefixAgentNameOnMessages":true,
                     "slackToken":null,
-                    "remotePrivateMessagePrefix":"REMOTE: "
+                    "remotePrivateMessagePrefix":"REMOTE: ",
+                    "ignoreGroupMessages": true
                 }
             ]
         }
