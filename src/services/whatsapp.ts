@@ -95,6 +95,13 @@ export default class WhatsApp {
                 return false;
             }
 
+            if (this.chatwootRef?.config.ignoreGroupMessages) {
+                let chat = await message.getChat();
+                if(chat.isGroup) {
+                    return false;
+                }
+            }
+
             let attachment = null;
             if (message.hasMedia) {
                 attachment = await message.downloadMedia();

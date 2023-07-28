@@ -97,4 +97,5 @@ export interface ChatwootAPIConfig {
     whatsappWebGroupParticipantsCustomField: string;
     slackToken: string;
     remotePrivateMessagePrefix: string;
+    ignoreGroupMessages: boolean
 }

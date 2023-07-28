@@ -36,6 +36,7 @@ const App = (props: AppProps) => {
                     whatsappWebGroupParticipantsCustomField: account.whatsappWebGroupParticipantsCustomField,
                     whatsappWebChatwootInboxId: whatsappWebInbox.id,
                     prefixAgentNameOnMessages: whatsappWebInbox.prefixAgentNameOnMessages,
+                    ignoreGroupMessages: whatsappWebInbox.ignoreGroupMessages,
                     slackToken: whatsappWebInbox.slackToken,
                     remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix,
                 };
