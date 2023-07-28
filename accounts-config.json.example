@@ -3,9 +3,9 @@
     [
         {
             "id":1,
-            "authToken":"",
-            "chatwootAPIUrl":"",
-            "chatwootApiKey":"",
+            "authToken":"youSecurityToken", //to secure the communication between chatwoot and whatsapp
+            "chatwootAPIUrl":"https://yourdomain.com/api/v1",
+            "chatwootApiKey":"selfexplained",
             "whatsappWebGroupParticipantsCustomField":"",
             "whatsappWebInboxes":[
                 {
@@ -13,14 +13,16 @@
                     "prefixAgentNameOnMessages":true,
                     "slackToken":null,
                     "remotePrivateMessagePrefix":true,
-                    "ignoreGroupMessages": true
+                    "ignoreGroupMessages": true,
+                    "messageTemplate": "*{0}*:\n{1}" // Only works if prefixAgentNameOnMessages true - {0} is sender name, {1} is message content
                 },
                 {
                     "id":12, 
                     "prefixAgentNameOnMessages":true,
                     "slackToken":null,
                     "remotePrivateMessagePrefix":"REMOTE: ",
-                    "ignoreGroupMessages": true
+                    "ignoreGroupMessages": true,
+                    "messageTemplate": "*{0}*:\n{1}"
                 }
             ]
         }

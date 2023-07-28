@@ -97,5 +97,22 @@ export interface ChatwootAPIConfig {
     whatsappWebGroupParticipantsCustomField: string;
     slackToken: string;
     remotePrivateMessagePrefix: string;
-    ignoreGroupMessages: boolean
+    ignoreGroupMessages: boolean;
+    messageTemplate: string
 }
+
+declare global { 
+    interface String { 
+        format(...args: any[]): string;
+    } 
+}
+
+String.prototype.format = function (): string {
+    var args = arguments;
+    return this.replace(/{(\d+)}/g, function (match, number) {
+        return typeof args[number] != 'undefined'
+            ? args[number]
+            : match
+            ;
+    });
+};
