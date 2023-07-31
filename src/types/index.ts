@@ -107,8 +107,7 @@ declare global {
     } 
 }
 
-String.prototype.format = function (): string {
-    var args = arguments;
+String.prototype.format = function (...args: any[]): string {
     return this.replace(/{(\d+)}/g, function (match, number) {
         return typeof args[number] != 'undefined'
             ? args[number]
