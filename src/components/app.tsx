@@ -37,7 +37,7 @@ const App = (props: AppProps) => {
                     whatsappWebChatwootInboxId: whatsappWebInbox.id,
                     prefixAgentNameOnMessages: whatsappWebInbox.prefixAgentNameOnMessages,
                     ignoreGroupMessages: whatsappWebInbox.ignoreGroupMessages,
-                    messageTemplate: whatsappWebInbox.templateMessage,
+                    messageTemplate: whatsappWebInbox.messageTemplate,
                     slackToken: whatsappWebInbox.slackToken,
                     remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix,
                 };
