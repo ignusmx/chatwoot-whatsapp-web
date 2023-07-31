@@ -1,6 +1,7 @@
 import { Express } from "express";
 import { ChatwootAPI } from "./chatwootAPI";
 import { Contact, GroupChat, GroupParticipant, MessageContent, MessageMedia } from "whatsapp-web.js";
+import '../extensions/string.extensions';
 
 export default class ExpressRoutes {
     public static configure(express: Express, chatwootAPIMap: any) {
