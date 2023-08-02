@@ -1,4 +1,4 @@
-import axios, { AxiosRequestHeaders } from "axios";
+import axios, { AxiosHeaders } from "axios";
 import { Message, Chat, GroupChat, Contact } from "whatsapp-web.js";
 import WhatsApp from "../services/whatsapp";
 import FormData from "form-data";
@@ -6,7 +6,7 @@ import MimeTypes from "mime-types";
 import { ChatwootAPIConfig } from "../types";
 
 export class ChatwootAPI {
-    private headers: AxiosRequestHeaders | undefined;
+    private headers: AxiosHeaders | undefined;
     private apiConfig: ChatwootAPIConfig;
     private whatsappWebService: WhatsApp;
 
@@ -20,7 +20,8 @@ export class ChatwootAPI {
 
     constructor(config: ChatwootAPIConfig, whatsappWebService: WhatsApp) {
         this.apiConfig = config;
-        this.headers = { api_access_token: this.config.chatwootAccessToken };
+        this.headers = new AxiosHeaders();
+        this.headers.set("api_access_token", this.config.chatwootAccessToken);
         this.whatsappWebService = whatsappWebService;
         this.whatsappWebService.chatwoot = this;
     }
@@ -264,8 +265,6 @@ export class ChatwootAPI {
         bodyFormData.append("message_type", type);
         bodyFormData.append("private", isPrivate.toString());
 
-        const headers: AxiosRequestHeaders = { ...this.headers, ...bodyFormData.getHeaders() };
-
         if (attachment != null) {
             const buffer = Buffer.from(attachment.data, "base64");
             const extension = MimeTypes.extension(attachment.mimetype);
@@ -277,7 +276,7 @@ export class ChatwootAPI {
             chatwootAPIUrl + messagesEndPoint,
             bodyFormData,
             {
-                headers: headers,
+                headers: this.headers,
                 maxContentLength: Infinity,
                 maxBodyLength: Infinity,
             }
