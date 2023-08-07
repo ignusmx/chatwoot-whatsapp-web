@@ -42,7 +42,7 @@ export default class ExpressRoutes {
                 if (
                     whatsappWebClientState === "CONNECTED" &&
                     chatwootMessage.inbox.id == chatwootAPI.config.whatsappWebChatwootInboxId &&
-                    chatwootMessage.message_type == "outgoing" &&
+                    (chatwootMessage.message_type == "outgoing" || chatwootMessage.message_type == "template") &&
                     !chatwootMessage.private
                 ) {
                     const chatwootContact = await chatwootAPI.getChatwootContactById(
