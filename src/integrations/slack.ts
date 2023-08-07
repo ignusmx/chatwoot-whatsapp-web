@@ -18,7 +18,7 @@ export default class Slack {
                     this.push(null);
                 },
             }),
-            "qr.png"
+            "qr.png",
         );
 
         axios

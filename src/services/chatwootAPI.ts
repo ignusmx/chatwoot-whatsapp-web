@@ -65,7 +65,7 @@ export class ChatwootAPI {
         } else {
             chatwootConversation = await this.getChatwootContactConversationByInboxId(
                 chatwootContact.id,
-                whatsappWebChatwootInboxId
+                whatsappWebChatwootInboxId,
             );
         }
 
@@ -73,7 +73,7 @@ export class ChatwootAPI {
             chatwootConversation = await this.makeChatwootConversation(
                 sourceId,
                 whatsappWebChatwootInboxId,
-                chatwootContact.id
+                chatwootContact.id,
             );
 
             //we set the group members if conversation is a group chat
@@ -97,7 +97,7 @@ export class ChatwootAPI {
             type,
             isPrivate,
             messagePrefix,
-            attachment
+            attachment,
         );
     }
 
@@ -229,7 +229,7 @@ export class ChatwootAPI {
         const chatwootContact = await this.findChatwootContactByIdentifier(contactIdentifier);
         const chatwootConversation = await this.getChatwootContactConversationByInboxId(
             chatwootContact.id,
-            this.apiConfig.whatsappWebChatwootInboxId
+            this.apiConfig.whatsappWebChatwootInboxId,
         );
         this.updateChatwootConversationCustomAttributes(chatwootConversation.id, conversationCustomAttributes);
     }
@@ -251,7 +251,7 @@ export class ChatwootAPI {
         type: string,
         isPrivate = false,
         messagePrefix?: string,
-        attachment?: any
+        attachment?: any,
     ) {
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const messagesEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/messages`;
@@ -279,7 +279,7 @@ export class ChatwootAPI {
                 headers: this.headers,
                 maxContentLength: Infinity,
                 maxBodyLength: Infinity,
-            }
+            },
         );
 
         return data;

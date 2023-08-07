@@ -25,6 +25,7 @@
         "ink": "^3.2.0",
         "is-docker": "^3.0.0",
         "pm2": "^5.2.0",
+        "prettier": "^3.0.1",
         "qrcode": "^1.5.1",
         "react": "^17.0.2",
         "whatsapp-web.js": "^1.21.0"
@@ -43,7 +44,6 @@
         "husky": "^8.0.1",
         "mime-types": "^2.1.35",
         "nodemon": "^2.0.19",
-        "prettier": "^2.7.1",
         "ts-node": "^10.9.1",
         "typescript": "^4.8.2"
     }

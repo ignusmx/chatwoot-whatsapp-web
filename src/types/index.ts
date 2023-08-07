@@ -98,5 +98,5 @@ export interface ChatwootAPIConfig {
     slackToken: string;
     remotePrivateMessagePrefix: string;
     ignoreGroupMessages: boolean;
-    messageTemplate: string
+    messageTemplate: string;
 }
