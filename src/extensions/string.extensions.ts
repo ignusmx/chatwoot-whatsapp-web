@@ -4,6 +4,6 @@ interface String {
 
 String.prototype.format = function (...args: any[]): string {
     return this.replace(/{(\d+)}/g, function (match, number) {
-        return typeof args[number] != "undefined" ? args[number] : match;
+        return typeof args[number] != "undefined" ? args[number] ?? "" : match;
     });
 };
