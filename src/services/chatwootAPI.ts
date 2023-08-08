@@ -266,7 +266,7 @@ export class ChatwootAPI {
             const extension = MimeTypes.extension(attachment.mimetype);
             const attachmentFilename = attachment.filename ?? "attachment." + extension;
             bodyFormData.append("attachments[]", buffer, attachmentFilename);
-            if (message == null) message = `User send a ${extension} file.`;
+            if (!message) message = `User send a ${extension} file.`;
         }
 
         bodyFormData.append("content", message);
