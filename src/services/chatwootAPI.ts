@@ -261,16 +261,17 @@ export class ChatwootAPI {
             message = messagePrefix + message;
         }
 
-        bodyFormData.append("content", message);
-        bodyFormData.append("message_type", type);
-        bodyFormData.append("private", isPrivate.toString());
-
         if (attachment != null) {
             const buffer = Buffer.from(attachment.data, "base64");
             const extension = MimeTypes.extension(attachment.mimetype);
             const attachmentFilename = attachment.filename ?? "attachment." + extension;
             bodyFormData.append("attachments[]", buffer, attachmentFilename);
+            if (message == null) message = `User send a ${extension} file.`;
         }
+
+        bodyFormData.append("content", message);
+        bodyFormData.append("message_type", type);
+        bodyFormData.append("private", isPrivate.toString());
 
         const { data } = <{ data: Record<string, unknown> }>await axios.postForm(
             chatwootAPIUrl + messagesEndPoint,
