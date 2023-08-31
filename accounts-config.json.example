@@ -12,7 +12,7 @@
                     "id":10, 
                     "prefixAgentNameOnMessages":true,
                     "slackToken":null,
-                    "remotePrivateMessagePrefix":true,
+                    "remotePrivateMessagePrefix":"REMOTE: ",
                     "ignoreGroupMessages": true,
                     "messageTemplate": "*{0}*:\n{1}" // Only works if prefixAgentNameOnMessages true - {0} is sender name, {1} is message content
                 },
