@@ -26,7 +26,7 @@ export class ChatwootAPI {
         this.whatsappWebService.chatwoot = this;
     }
 
-    async broadcastMessageToChatwoot(message: Message, type: string, attachment: any, messagePrefix: string | undefined) {
+    async broadcastMessageToChatwoot(message: Message, type: string, attachment: any, messagePrefix: string | undefined, status?: string) {
         const { whatsappWebChatwootInboxId } = this.apiConfig;
 
         let chatwootConversation: any = null;
@@ -73,12 +73,17 @@ export class ChatwootAPI {
             chatwootConversation = await this.makeChatwootConversation(
                 sourceId,
                 whatsappWebChatwootInboxId,
-                chatwootContact.id,
+                chatwootContact.id
             );
+
 
             //we set the group members if conversation is a group chat
             if (messageChat.isGroup) {
                 this.updateChatwootConversationGroupParticipants(messageChat as GroupChat);
+            }
+
+            if(status) {
+                await this.toggleStatusChatwootConversation(chatwootConversation.id as string, status);
             }
         }
 
@@ -197,16 +202,28 @@ export class ChatwootAPI {
         const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
         const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations`;
 
-        const conversationPayload = {
+        let conversationPayload = {
             source_id: sourceId,
             inbox_id: inboxId,
             contact_id: contactId,
         };
-
         const { data } = <{ data: Record<string, unknown> }>(
             await axios.post(chatwootAPIUrl + conversationsEndPoint, conversationPayload, { headers: headers })
         );
         return data;
+    }
+
+    async toggleStatusChatwootConversation(conversationId: string | number, status: string) {
+        const { headers } = this;
+        const { chatwootAccountId, chatwootAPIUrl } = this.apiConfig;
+        const conversationsEndPoint = `/accounts/${chatwootAccountId}/conversations/${conversationId}/toggle_status`;
+
+        let conversationPayload = {
+            status: status
+        };
+        const { data } = <{ data: Record<string, unknown> }>(
+            await axios.post(chatwootAPIUrl + conversationsEndPoint, conversationPayload, { headers: headers })
+        );
     }
 
     async updateChatwootConversationGroupParticipants(whatsappGroupChat: GroupChat) {

@@ -137,6 +137,7 @@ export default class WhatsApp {
                         "outgoing",
                         attachment,
                         this.chatwootRef.config.remotePrivateMessagePrefix,
+                        "open"
                     );
                 }
             }
