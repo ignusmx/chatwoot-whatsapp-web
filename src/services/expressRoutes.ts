@@ -1,6 +1,7 @@
 import { Express } from "express";
 import { ChatwootAPI } from "./chatwootAPI";
 import { Contact, GroupChat, GroupParticipant, MessageContent, MessageMedia } from "whatsapp-web.js";
+import "../extensions/string.extensions";
 
 export default class ExpressRoutes {
     public static configure(express: Express, chatwootAPIMap: any) {
@@ -41,11 +42,11 @@ export default class ExpressRoutes {
                 if (
                     whatsappWebClientState === "CONNECTED" &&
                     chatwootMessage.inbox.id == chatwootAPI.config.whatsappWebChatwootInboxId &&
-                    chatwootMessage.message_type == "outgoing" &&
+                    (chatwootMessage.message_type == "outgoing" || chatwootMessage.message_type == "template") &&
                     !chatwootMessage.private
                 ) {
                     const chatwootContact = await chatwootAPI.getChatwootContactById(
-                        chatwootMessage.conversation.contact_inbox.contact_id
+                        chatwootMessage.conversation.contact_inbox.contact_id,
                     );
                     const messages = await chatwootAPI.getChatwootConversationMessages(chatwootMessage.conversation.id);
                     const messageData = messages.find((message: any) => {
@@ -74,7 +75,7 @@ export default class ExpressRoutes {
                                     .toLowerCase();
                                 const participantIdentifier = `${participant.id.user}@${participant.id.server}`;
                                 const contact: Contact = await chatwootAPI.whatsapp.client.getContactById(
-                                    participantIdentifier
+                                    participantIdentifier,
                                 );
                                 if (
                                     (contact.name != null && contact.name.toLowerCase().includes(mentionIdentifier)) ||
@@ -97,7 +98,7 @@ export default class ExpressRoutes {
                             senderName = sender.available_name ?? sender.name;
                         }
 
-                        formattedMessage = `${senderName}: ${formattedMessage ?? ""}`;
+                        formattedMessage = chatwootAPI.config.messageTemplate.format(senderName, formattedMessage);
                     }
 
                     if (messageData.attachments != null && messageData.attachments.length > 0) {

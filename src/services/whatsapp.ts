@@ -30,7 +30,7 @@ export default class WhatsApp {
     constructor(
         clientId: string,
         setWhatsappStatus: React.Dispatch<React.SetStateAction<string>>,
-        setQR: React.Dispatch<React.SetStateAction<string>>
+        setQR: React.Dispatch<React.SetStateAction<string>>,
     ) {
         this._clientId = clientId;
         this.setWhatsappStatusRef = setWhatsappStatus;
@@ -84,14 +84,22 @@ export default class WhatsApp {
         this.clientRef.on("ready", () => {
             this.setWhatsappStatusRef(
                 "WhatsApp client is ready" +
-                    `(Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`
+                    `(Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`,
             );
             this.setQRRef("");
         });
 
         this.clientRef.on("message", async (message) => {
-            if (message.broadcast) {
+            const isBroadcast = message.broadcast || message.isStatus;
+            if (isBroadcast) {
                 return false;
+            }
+
+            if (this.chatwootRef?.config.ignoreGroupMessages) {
+                const chat = await message.getChat();
+                if (chat.isGroup) {
+                    return false;
+                }
             }
 
             let attachment = null;
@@ -128,7 +136,8 @@ export default class WhatsApp {
                         message,
                         "outgoing",
                         attachment,
-                        this.chatwootRef.config.remotePrivateMessagePrefix
+                        this.chatwootRef.config.remotePrivateMessagePrefix,
+                        "open"
                     );
                 }
             }
@@ -149,7 +158,7 @@ export default class WhatsApp {
         this.clientRef.initialize().catch((e) => {
             this.setWhatsappStatusRef(
                 "Error: Unable to initialize WhatsApp." +
-                    `(Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`
+                    `(Account: ${this.chatwootRef?.config.chatwootAccountId}, Inbox: ${this.chatwootRef?.config.whatsappWebChatwootInboxId})`,
             );
         });
     }

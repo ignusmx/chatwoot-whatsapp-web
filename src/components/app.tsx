@@ -36,6 +36,8 @@ const App = (props: AppProps) => {
                     whatsappWebGroupParticipantsCustomField: account.whatsappWebGroupParticipantsCustomField,
                     whatsappWebChatwootInboxId: whatsappWebInbox.id,
                     prefixAgentNameOnMessages: whatsappWebInbox.prefixAgentNameOnMessages,
+                    ignoreGroupMessages: whatsappWebInbox.ignoreGroupMessages,
+                    messageTemplate: whatsappWebInbox.messageTemplate,
                     slackToken: whatsappWebInbox.slackToken,
                     remotePrivateMessagePrefix: whatsappWebInbox.remotePrivateMessagePrefix,
                 };
@@ -43,7 +45,7 @@ const App = (props: AppProps) => {
                 const whatsappClient = new WhatsApp(
                     `inbox_${chatwootConfig.whatsappWebChatwootInboxId}`,
                     setWhatsappStatus,
-                    setQr
+                    setQr,
                 );
 
                 whatsappClient.client.on("ready", () => {
@@ -52,7 +54,7 @@ const App = (props: AppProps) => {
                     if (pendingInitWhatsappClients.length > 0) {
                         setWhatsappStatus(
                             "WhatsApp Web client succesfully initialized. Initializing WhatsApp Web Client for next inbox..." +
-                                `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`
+                                `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`,
                         );
                         pendingInitWhatsappClients[0].initialize();
                     } else {
@@ -69,7 +71,7 @@ const App = (props: AppProps) => {
 
         setWhatsappStatus(
             "Initializing WhatsApp Web Client for Inbox..." +
-                `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`
+                `(Account: ${pendingInitWhatsappClients[0].chatwoot?.config.chatwootAccountId}, Inbox: ${pendingInitWhatsappClients[0].chatwoot?.config.whatsappWebChatwootInboxId})`,
         );
         ExpressRoutes.configure(express, chatwootAPIMap);
 

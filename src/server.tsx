@@ -12,7 +12,7 @@ bootstrap().then(() => {
         express.json(),
         express.urlencoded({
             extended: true,
-        })
+        }),
     );
 
     // init api server
